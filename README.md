@@ -2,7 +2,7 @@
 
 Prerequisites
 -------------
-Install [Stack][stack] v2.5.17.
+Install [Stack][stack] v2.15.7.
 
 Running
 -------
