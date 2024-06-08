@@ -23,6 +23,7 @@ jobs:
         uses: haskell-actions/setup@v2
         with:
           stack-version: '2.5.17'
+          enable-stack: true
       - name: Build
         run: stack build
       - name: Test
