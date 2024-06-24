@@ -4,6 +4,12 @@ Prerequisites
 -------------
 Install [Stack][stack] v2.15.7.
 
+Compilation
+-----------
+```console
+$ stack build
+```
+
 Running
 -------
 ```console
