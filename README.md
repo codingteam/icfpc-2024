@@ -33,6 +33,23 @@ $ stack test
 
 [stack]: https://docs.haskellstack.org/en/stable/
 
+Usage
+-----
+- Request generation:
+  ```console
+  stack run fileToGalaxy in.txt
+  ```
+  Note, it will not generate leading `S`!
+- Submit request:
+  ```console
+  ./communicate.sh file.txt > out.txt
+  ```
+  Is must be a valid request.
+- Get human-readable answer:
+  ```console
+  stack run fileFromGalaxy out.txt
+  ```
+
 ICFP Language
 -------------
 
