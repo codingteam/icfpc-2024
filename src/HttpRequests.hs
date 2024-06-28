@@ -28,6 +28,6 @@ performRequest requestText = do
 
     if BL.index responseBody 0 == 'S' then
         let galaxyEncodedBody = BL.drop 1 responseBody in
-        putStrLn $ "Received response in Galaxy: " ++ (T.unpack $ S.textFromGalaxy $ L.toStrict $ decodeUtf8 $ galaxyEncodedBody)
+        putStrLn $ "Received response in Galaxy:\n" ++ (T.unpack $ S.textFromGalaxy $ L.toStrict $ decodeUtf8 $ galaxyEncodedBody)
     else
         BL.putStrLn $ BL.concat ["Received raw response: ", responseBody]
