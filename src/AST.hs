@@ -36,20 +36,27 @@ data AST =
 
 --- Returns either the reduced AST or the error message explaining what went wrong.
 evalAst :: AST -> Either T.Text AST
-evalAst input@(Boolean _) = Right input
-evalAst input@(Number _) = Right input
-evalAst input@(Str _) = Right input
-evalAst (Negate input) = do
+evalAst ast = do
+    reduced <- evalAstStep ast
+    if reduced == ast
+        then Right ast
+        else evalAst reduced
+
+evalAstStep :: AST -> Either T.Text AST
+evalAstStep input@(Boolean _) = Right input
+evalAstStep input@(Number _) = Right input
+evalAstStep input@(Str _) = Right input
+evalAstStep (Negate input) = do
   reduced <- evalAst input
   case reduced of
     (Number number) -> Right $ Number (negate number)
     _ -> Left "Non-integer input for unary negation"
-evalAst (Not input) = do
+evalAstStep (Not input) = do
   reduced <- evalAst input
   case reduced of
     (Boolean bool) -> Right $ Boolean (not bool)
     _ -> Left "Non-boolean input for \"not\""
-evalAst (StrToInt input) = do
+evalAstStep (StrToInt input) = do
   reduced <- evalAst input
   case reduced of
     (Str str) ->
@@ -57,54 +64,54 @@ evalAst (StrToInt input) = do
         Just number -> Right $ Number number
         Nothing -> Left $ "Failed to parse " <> str <> " as number"
     _ -> Left "Non-string input to str-to-int"
-evalAst (IntToStr input) = do
+evalAstStep (IntToStr input) = do
   reduced <- evalAst input
   case reduced of
     (Number number) -> Right $ Str $ textFromGalaxy $ numberToGalaxy number
     _ -> Left "Non-integer input to int-to-str"
-evalAst (Add lhs rhs) = do
+evalAstStep (Add lhs rhs) = do
   lhs' <- evalAst lhs
   rhs' <- evalAst rhs
   case (lhs', rhs') of
     (Number a, Number b) -> Right $ Number (a+b)
     _ -> Left "Non-integer inputs to addition"
-evalAst (Sub lhs rhs) = do
+evalAstStep (Sub lhs rhs) = do
   lhs' <- evalAst lhs
   rhs' <- evalAst rhs
   case (lhs', rhs') of
     (Number a, Number b) -> Right $ Number (a-b)
     _ -> Left "Non-integer inputs to subtraction"
-evalAst (Mult lhs rhs) = do
+evalAstStep (Mult lhs rhs) = do
   lhs' <- evalAst lhs
   rhs' <- evalAst rhs
   case (lhs', rhs') of
     (Number a, Number b) -> Right $ Number (a*b)
     _ -> Left "Non-integer inputs to multiplication"
-evalAst (Div lhs rhs) = do
+evalAstStep (Div lhs rhs) = do
   lhs' <- evalAst lhs
   rhs' <- evalAst rhs
   case (lhs', rhs') of
     (Number a, Number b) -> Right $ Number (a `quot` b)
     _ -> Left "Non-integer inputs to division"
-evalAst (Mod lhs rhs) = do
+evalAstStep (Mod lhs rhs) = do
   lhs' <- evalAst lhs
   rhs' <- evalAst rhs
   case (lhs', rhs') of
     (Number a, Number b) -> Right $ Number (a `rem` b)
     _ -> Left "Non-integer inputs to modulo"
-evalAst (Lt lhs rhs) = do
+evalAstStep (Lt lhs rhs) = do
   lhs' <- evalAst lhs
   rhs' <- evalAst rhs
   case (lhs', rhs') of
     (Number a, Number b) -> Right $ Boolean (a < b)
     _ -> Left "Non-integer inputs to less-than"
-evalAst (Gt lhs rhs) = do
+evalAstStep (Gt lhs rhs) = do
   lhs' <- evalAst lhs
   rhs' <- evalAst rhs
   case (lhs', rhs') of
     (Number a, Number b) -> Right $ Boolean (a > b)
     _ -> Left "Non-integer inputs to greater-than"
-evalAst (Equals lhs rhs) = do
+evalAstStep (Equals lhs rhs) = do
   lhs' <- evalAst lhs
   rhs' <- evalAst rhs
   case (lhs', rhs') of
@@ -112,31 +119,31 @@ evalAst (Equals lhs rhs) = do
     (Boolean a, Boolean b) -> Right $ Boolean (a == b)
     (Str a, Str b) -> Right $ Boolean (a == b)
     _ -> Left "Arguments to equals have mismatching types or they weren't reduced completely"
-evalAst (Or lhs rhs) = do
+evalAstStep (Or lhs rhs) = do
   lhs' <- evalAst lhs
   rhs' <- evalAst rhs
   case (lhs', rhs') of
     (Boolean a, Boolean b) -> Right $ Boolean (a || b)
     _ -> Left "Non-boolean inputs to \"or\""
-evalAst (And lhs rhs) = do
+evalAstStep (And lhs rhs) = do
   lhs' <- evalAst lhs
   rhs' <- evalAst rhs
   case (lhs', rhs') of
     (Boolean a, Boolean b) -> Right $ Boolean (a && b)
     _ -> Left "Non-boolean inputs to \"and\""
-evalAst (Concat lhs rhs) = do
+evalAstStep (Concat lhs rhs) = do
   lhs' <- evalAst lhs
   rhs' <- evalAst rhs
   case (lhs', rhs') of
     (Str a, Str b) -> Right $ Str (T.concat [a, b])
     _ -> Left "Non-string inputs to concat"
-evalAst (Take lhs rhs) = do
+evalAstStep (Take lhs rhs) = do
   lhs' <- evalAst lhs
   rhs' <- evalAst rhs
   case (lhs', rhs') of
     (Number a, Str b) -> Right $ Str (T.take (fromIntegral a) b)
     _ -> Left "Invalid argument types to \"take\""
-evalAst (Drop lhs rhs) = do
+evalAstStep (Drop lhs rhs) = do
   lhs' <- evalAst lhs
   rhs' <- evalAst rhs
   case (lhs', rhs') of
@@ -146,4 +153,4 @@ evalAst (Drop lhs rhs) = do
 -- evalAst (If AST AST AST)
 -- evalAst (Var VarNo)
 -- evalAst (Lambda VarNo AST)
-evalAst _ = undefined
+evalAstStep _ = undefined
