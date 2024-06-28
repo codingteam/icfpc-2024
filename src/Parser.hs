@@ -1,4 +1,4 @@
-module Parser where
+module Parser (parseExpression) where
 
 import qualified Data.Text as T
 import Text.Megaparsec

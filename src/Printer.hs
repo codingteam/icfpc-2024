@@ -1,4 +1,4 @@
-module Printer where
+module Printer (astToGalaxy) where
 
 import qualified Data.Text as T
 
