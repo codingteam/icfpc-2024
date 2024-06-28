@@ -40,6 +40,7 @@ See: https://icfpcontest2024.github.io/icfp.html
 
 Known Q&A
 ---------
+- Only one command per request. They cannot be combined together like: `Sget index` `Sget index`.
 - Q:
   ```text
   get index
