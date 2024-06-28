@@ -44,6 +44,15 @@ main = do
             Left e -> putStrLn e
             Right ast -> pPrint ast
 
+    ["evalFile", path] -> do
+        txt <- TIO.readFile path
+        case parseExpression (T.strip txt) of
+            Left err -> putStrLn $ "Cannot parse: " ++ err
+            Right program ->
+                case evalAst program of
+                    Left err -> TIO.putStrLn $ "Cannot evaluate: " <> err
+                    Right result -> pPrint result
+
     ["http", request] -> performRequest request
     ["http-raw", request] -> performRequest' False request
     ["http-eval-galaxy", path] -> do
