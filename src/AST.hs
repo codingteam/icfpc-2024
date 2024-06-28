@@ -62,11 +62,36 @@ evalAst (IntToStr input) = do
   case reduced of
     (Number number) -> Right $ Str $ textFromGalaxy $ numberToGalaxy number
     _ -> Left "Non-integer input to int-to-str"
--- evalAst (Add AST AST)
--- evalAst (Sub AST AST)
--- evalAst (Mult AST AST)
--- evalAst (Div AST AST)
--- evalAst (Mod AST AST)
+evalAst (Add lhs rhs) = do
+  lhs' <- evalAst lhs
+  rhs' <- evalAst rhs
+  case (lhs', rhs') of
+    (Number a, Number b) -> Right $ Number (a+b)
+    _ -> Left "Non-integer inputs to addition"
+evalAst (Sub lhs rhs) = do
+  lhs' <- evalAst lhs
+  rhs' <- evalAst rhs
+  case (lhs', rhs') of
+    (Number a, Number b) -> Right $ Number (a-b)
+    _ -> Left "Non-integer inputs to subtraction"
+evalAst (Mult lhs rhs) = do
+  lhs' <- evalAst lhs
+  rhs' <- evalAst rhs
+  case (lhs', rhs') of
+    (Number a, Number b) -> Right $ Number (a*b)
+    _ -> Left "Non-integer inputs to multiplication"
+evalAst (Div lhs rhs) = do
+  lhs' <- evalAst lhs
+  rhs' <- evalAst rhs
+  case (lhs', rhs') of
+    (Number a, Number b) -> Right $ Number (a `quot` b)
+    _ -> Left "Non-integer inputs to division"
+evalAst (Mod lhs rhs) = do
+  lhs' <- evalAst lhs
+  rhs' <- evalAst rhs
+  case (lhs', rhs') of
+    (Number a, Number b) -> Right $ Number (a `rem` b)
+    _ -> Left "Non-integer inputs to modulo"
 -- evalAst (Lt AST AST)
 -- evalAst (Gt AST AST)
 -- evalAst (Equals AST AST)
