@@ -23,7 +23,8 @@ $ stack run icfpc-y2024-exe [args]
 ```
 
 where `args` are:
-- `http <request>` will perform a HTTP request, e.g. `http "get index"`.
+- `http <request>` will perform a HTTP request, e.g. `http "get index"`;
+- `http-all` will download all known resources.
 
 Testing
 -------

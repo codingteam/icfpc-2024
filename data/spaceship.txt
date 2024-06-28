@@ -1,0 +1,42 @@
+Welcome to the Spaceship course!
+
+In 2020, most of us have learned how to operate a spaceship. In this course we'll play a small chess-like game featuring the spaceship! The game operates on an infinite 2D chess board, with the spaceship initially located on `(0,0)`. The spaceship has a velocity `vx` and `vy`, which are initially both set to `0`. In each turn the player can increase/decrease each of those numbers by at most one, and then the piece moves `vx` steps to the right and `vy` steps up.
+
+Moves are represented with a single digit, inspired by the old numeric pad on a computer keyboard that we used to have in the old days on Earth. For example, `7` means decreasing `vx` and increasing `vy` by `1`, while `6` means increasing `vx` by `1` and keeping `vy` the same. A path can then be represented by a sequence of digits, e.g. the path `236659` visits, in this order, the following squares: `(0,0) (0,-1) (1,-3) (3,-5) (6,-7) (9,-9) (13,-10)`.
+
+Now the challenge is the following: given a list of squares to be visited, find a sequence of moves that visits all those squares. Your solution may consist of at most `10,000,000` moves.
+
+The following levels are available:
+* [spaceship1] Your score: 5. Best score: 5.
+* [spaceship2] Best score: 49.
+* [spaceship3] Best score: 10.
+* [spaceship4] Best score: 207.
+* [spaceship5] Best score: 119.
+* [spaceship6] Best score: 393.
+* [spaceship7] Best score: 115.
+* [spaceship8] Best score: 109.
+* [spaceship9] Best score: 501.
+* [spaceship10] Best score: 744.
+* [spaceship11] Best score: 8192.
+* [spaceship12] Best score: 8192.
+* [spaceship13] Best score: 107807.
+* [spaceship14] Best score: 210.
+* [spaceship15] Best score: 58.
+* [spaceship16] Best score: 2499.
+* [spaceship17] Best score: 738.
+* [spaceship18] Best score: 3247.
+* [spaceship19] Best score: 21704.
+* [spaceship20] Best score: 5513.
+* [spaceship21] Best score: 5459.
+* [spaceship22] Best score: 1988.
+* [spaceship23]
+* [spaceship24] Best score: 799788.
+* [spaceship25]
+
+To submit a solution, send an ICFP expression that evaluates to:
+
+```
+solve spaceshipX moves
+```
+
+Your score is the number of moves, so a lower score is better.

@@ -1,6 +1,6 @@
 module Main (main) where
 
-import HttpRequests (performRequest)
+import HttpRequests (performRequest, performDownloadAllKnown)
 import System.Environment
 
 import System.Environment (getArgs)
@@ -13,7 +13,7 @@ import Strings
 import Parser
 
 printHelp :: IO ()
-printHelp = putStrLn "Possible args:\n - http <request>"
+printHelp = putStrLn "Possible args:\n - http <request>\n- http-all"
 
 main :: IO ()
 main = do
@@ -43,4 +43,5 @@ main = do
             Right ast -> pPrint ast
 
     ["http", request] -> performRequest request
+    ["http-all"] -> performDownloadAllKnown
     _ -> printHelp
