@@ -13,7 +13,7 @@ astTests = testGroup "AST"
 
 evalTests :: TestTree
 evalTests =
-    let genCase desc input expected = testCase desc $ evalAst input @?= expected
+    let genCase desc input expected = testCase desc $ evalAst input @?= Right expected
     in
     testGroup "AST.evalAst" [
         genCase

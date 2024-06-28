@@ -31,5 +31,6 @@ data AST =
     | Lambda VarNo AST
     deriving (Show, Eq)
 
-evalAst :: AST -> AST
+--- Returns either the reduced AST or the error message explaining what went wrong.
+evalAst :: AST -> Either T.Text AST
 evalAst = undefined
