@@ -1,4 +1,6 @@
-# icfpc-y2024
+icfpc-y2024
+===========
+Contest page: https://icfpcontest2024.github.io/
 
 Prerequisites
 -------------
