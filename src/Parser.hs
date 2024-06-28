@@ -38,19 +38,19 @@ pNumberLit = do
 
 pNumber :: Parser AST
 pNumber = do
-    single 'I'
+    _ <- single 'I'
     Number <$> pNumberLit
 
 pString :: Parser AST
 pString = do
-    single 'S'
+    _ <- single 'S'
     str <- takeWhileP Nothing (/= ' ')
     space
     return $ Str $ textFromGalaxy str
 
 pUnary :: Parser AST
 pUnary = do
-        single 'U'
+        _ <- single 'U'
         r <- pNegate <|> pNot <|> pStrToInt <|> pIntToStr
         return r
     where
@@ -61,7 +61,7 @@ pUnary = do
 
 pBinary :: Parser AST
 pBinary = do
-    single 'B'
+    _ <- single 'B'
     sign <- oneOf ("+-*/%<>=|&.TD$" :: String)
     space
     let op = case sign of
@@ -87,7 +87,7 @@ pBinary = do
 
 pIf :: Parser AST
 pIf = do
-    single '?'
+    _ <- single '?'
     space
     cond <- pExpression
     space
@@ -99,13 +99,13 @@ pIf = do
 
 pVar :: Parser AST
 pVar = do
-    single 'v'
+    _ <- single 'v'
     n <- pNumberLit
     return $ Var n
 
 pLambda :: Parser AST
 pLambda = do
-    single 'L'
+    _ <- single 'L'
     n <- pNumberLit
     space
     body <- pExpression
