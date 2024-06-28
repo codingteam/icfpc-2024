@@ -2,6 +2,9 @@ module AST (AST(..), VarNo, evalAst) where
 
 import qualified Data.Text as T
 
+import Lib (parseNumber)
+import Strings (textToGalaxy)
+
 type VarNo = Integer
 
 data AST =
@@ -40,7 +43,11 @@ evalAst (Negate (Number input)) = Right $ Number (negate input)
 evalAst (Negate _) = Left "Non-integer input for unary negation"
 evalAst (Not (Boolean input)) = Right $ Boolean (not input)
 evalAst (Not _) = Left "Non-boolean input for \"not\""
--- evalAst (StrToInt AST)
+evalAst (StrToInt (Str input)) =
+  case parseNumber (textToGalaxy input) of
+    Just number -> Right $ Number number
+    Nothing -> Left $ "Failed to parse " <> input <> " as number"
+evalAst (StrToInt _) = Left "Non-string input to str-to-int"
 -- evalAst (IntToStr AST)
 -- evalAst (Add AST AST)
 -- evalAst (Sub AST AST)
