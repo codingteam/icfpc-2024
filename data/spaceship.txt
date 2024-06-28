@@ -8,30 +8,30 @@ Now the challenge is the following: given a list of squares to be visited, find 
 
 The following levels are available:
 * [spaceship1] Your score: 5. Best score: 5.
-* [spaceship2] Best score: 49.
-* [spaceship3] Best score: 10.
-* [spaceship4] Best score: 207.
-* [spaceship5] Best score: 119.
-* [spaceship6] Best score: 393.
-* [spaceship7] Best score: 115.
-* [spaceship8] Best score: 109.
-* [spaceship9] Best score: 501.
-* [spaceship10] Best score: 744.
+* [spaceship2] Your score: 199. Best score: 49.
+* [spaceship3] Your score: 62. Best score: 10.
+* [spaceship4] Best score: 99.
+* [spaceship5] Best score: 116.
+* [spaceship6] Best score: 123.
+* [spaceship7] Your score: 238. Best score: 94.
+* [spaceship8] Your score: 216. Best score: 91.
+* [spaceship9] Best score: 243.
+* [spaceship10] Best score: 391.
 * [spaceship11] Best score: 8192.
 * [spaceship12] Best score: 8192.
-* [spaceship13] Best score: 107807.
+* [spaceship13] Best score: 28602.
 * [spaceship14] Best score: 210.
-* [spaceship15] Best score: 58.
-* [spaceship16] Best score: 2499.
-* [spaceship17] Best score: 738.
-* [spaceship18] Best score: 3247.
-* [spaceship19] Best score: 21704.
-* [spaceship20] Best score: 5513.
-* [spaceship21] Best score: 5459.
-* [spaceship22] Best score: 1988.
-* [spaceship23]
+* [spaceship15] Best score: 43.
+* [spaceship16] Best score: 1803.
+* [spaceship17] Best score: 440.
+* [spaceship18] Best score: 1959.
+* [spaceship19] Best score: 13429.
+* [spaceship20] Best score: 4151.
+* [spaceship21] Best score: 4191.
+* [spaceship22] Best score: 1359.
+* [spaceship23] Best score: 191144.
 * [spaceship24] Best score: 799788.
-* [spaceship25]
+* [spaceship25] Best score: 861136.
 
 To submit a solution, send an ICFP expression that evaluates to:
 

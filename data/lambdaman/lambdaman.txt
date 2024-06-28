@@ -21,25 +21,25 @@ When Lambda-Man is instructed to move into a square containing a wall, nothing h
 The following levels are available:
 * [lambdaman1] Your score: 33. Best score: 33.
 * [lambdaman2] Your score: 44. Best score: 44.
-* [lambdaman3] Best score: 58.
-* [lambdaman4] Best score: 176.
+* [lambdaman3] Your score: 59. Best score: 58.
+* [lambdaman4] Your score: 414. Best score: 176.
 * [lambdaman5] Best score: 159.
-* [lambdaman6] Best score: 75.
+* [lambdaman6] Your score: 217. Best score: 73.
 * [lambdaman7] Best score: 181.
-* [lambdaman8] Best score: 143.
-* [lambdaman9] Best score: 1657.
-* [lambdaman10] Best score: 1520.
-* [lambdaman11] Best score: 3183.
-* [lambdaman12] Best score: 3183.
-* [lambdaman13] Best score: 3183.
-* [lambdaman14] Best score: 3183.
-* [lambdaman15] Best score: 3183.
-* [lambdaman16] Best score: 5131.
-* [lambdaman17] Best score: 1247.
-* [lambdaman18] Best score: 6200.
-* [lambdaman19] Best score: 5159.
-* [lambdaman20] Best score: 9065.
-* [lambdaman21] Best score: 34346.
+* [lambdaman8] Your score: 4917. Best score: 136.
+* [lambdaman9] Your score: 2617. Best score: 114.
+* [lambdaman10] Best score: 228.
+* [lambdaman11] Your score: 12093. Best score: 1615.
+* [lambdaman12] Your score: 12001. Best score: 1615.
+* [lambdaman13] Your score: 12281. Best score: 1605.
+* [lambdaman14] Your score: 12045. Best score: 1593.
+* [lambdaman15] Your score: 12321. Best score: 1609.
+* [lambdaman16] Your score: 8209. Best score: 287.
+* [lambdaman17] Best score: 231.
+* [lambdaman18] Best score: 4361.
+* [lambdaman19] Your score: 16364. Best score: 1442.
+* [lambdaman20] Best score: 6489.
+* [lambdaman21] Best score: 10609.
 
 To submit a solution, send an ICFP expression that evaluates to:
 
