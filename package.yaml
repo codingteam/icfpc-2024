@@ -25,6 +25,7 @@ dependencies:
 - containers >= 0.6
 - http-conduit
 - megaparsec >= 9.5.0
+- pretty-simple
 
 ghc-options:
 - -Wall

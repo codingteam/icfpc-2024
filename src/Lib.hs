@@ -1,8 +1,10 @@
 module Lib
     ( parseNumber
     , parseNumberToken
+    , printNumber
     ) where
 
+import Numeric (showIntAtBase)
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
 
@@ -23,4 +25,9 @@ parseNumber input
         (Just 0)
         input
   where
-    alphabet = M.fromList $ zip ['!' .. '~'] [0..]
+    alphabet = M.fromList $ zip base94digits [0..]
+
+base94digits = ['!' .. '~']
+
+printNumber :: Integer -> T.Text
+printNumber n = T.pack $ showIntAtBase 94 (base94digits !!) n ""

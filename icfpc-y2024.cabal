@@ -28,6 +28,7 @@ library
       HttpRequests
       Lib
       Parser
+      Printer
       Strings
   other-modules:
       Paths_icfpc_y2024
@@ -44,6 +45,7 @@ library
     , containers
     , http-conduit
     , megaparsec >=9.5.0
+    , pretty-simple
     , text
   default-language: Haskell2010
 
@@ -65,6 +67,7 @@ executable icfpc-y2024-exe
     , http-conduit
     , icfpc-y2024
     , megaparsec >=9.5.0
+    , pretty-simple
     , text
   default-language: Haskell2010
 
@@ -88,6 +91,7 @@ test-suite icfpc-y2024-test
     , http-conduit
     , icfpc-y2024
     , megaparsec >=9.5.0
+    , pretty-simple
     , tasty
     , tasty-hunit
     , text >=2.0.2

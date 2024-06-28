@@ -6,6 +6,7 @@ import System.Environment
 import System.Environment (getArgs)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
+import Text.Pretty.Simple (pPrint)
 
 import Lib
 import Strings
@@ -39,7 +40,7 @@ main = do
         txt <- TIO.readFile path
         case parseExpression txt of
             Left e -> putStrLn e
-            Right ast -> putStrLn $ show ast
+            Right ast -> pPrint ast
 
     ["http", request] -> performRequest request
     _ -> printHelp
