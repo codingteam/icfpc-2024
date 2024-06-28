@@ -9,6 +9,7 @@ import qualified Data.Text.IO as TIO
 
 import Lib
 import Strings
+import Parser
 
 printHelp :: IO ()
 printHelp = putStrLn "Possible args:\n - http <request>"
@@ -33,6 +34,12 @@ main = do
     ["fileFromGalaxy", path] -> do
         txt <- TIO.readFile path
         TIO.putStr $ textFromGalaxy txt
+
+    ["parseFile", path] -> do
+        txt <- TIO.readFile path
+        case parseExpression txt of
+            Left e -> putStrLn e
+            Right ast -> putStrLn $ show ast
 
     ["http", request] -> performRequest request
     _ -> printHelp

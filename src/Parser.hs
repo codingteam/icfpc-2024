@@ -53,13 +53,12 @@ pUnary :: Parser AST
 pUnary = do
         single 'U'
         r <- pNegate <|> pNot <|> pStrToInt <|> pIntToStr
-        space
         return r
     where
-        pNegate = single '-' >> Negate <$> pExpression
-        pNot = single '!' >> Not <$> pExpression
-        pStrToInt = single '#' >> StrToInt <$> pExpression
-        pIntToStr = single '$' >> IntToStr <$> pExpression
+        pNegate = single '-' >> space >> Negate <$> pExpression
+        pNot = single '!' >> space >> Not <$> pExpression
+        pStrToInt = single '#' >> space >> StrToInt <$> pExpression
+        pIntToStr = single '$' >> space >> IntToStr <$> pExpression
 
 pBinary :: Parser AST
 pBinary = do
@@ -113,4 +112,10 @@ pLambda = do
     body <- pExpression
     space
     return $ Lambda n body
+
+parseExpression :: T.Text -> Either String AST
+parseExpression txt =
+    case parse pExpression "<expression>" txt of
+        Left err -> Left $ errorBundlePretty err
+        Right expr -> Right expr
 
