@@ -38,7 +38,7 @@ main = do
 
     ["parseFile", path] -> do
         txt <- TIO.readFile path
-        case parseExpression txt of
+        case parseExpression (T.strip txt) of
             Left e -> putStrLn e
             Right ast -> pPrint ast
 
