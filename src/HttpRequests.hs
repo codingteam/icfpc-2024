@@ -35,9 +35,10 @@ performRequest requestText = do
         BL.putStrLn $ BL.concat ["Received raw response: ", responseBody]
 
 allKnownData :: [String]
-allKnownData =
-    ["index", "echo", "scoreboard", "lambdaman", "spaceship"]
+allKnownData = []
+    ++ ["index", "echo", "scoreboard", "lambdaman", "spaceship"]
     ++ ["lambdaman" ++ show n | n <- [1..21]]
+    ++ ["spaceship" ++ show n | n <- [1..25]]
 
 outDir :: String
 outDir = "data"
