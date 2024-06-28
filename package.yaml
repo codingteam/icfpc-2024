@@ -32,8 +32,14 @@ ghc-options:
 - -Wpartial-fields
 - -Wredundant-constraints
 
+default-extensions:
+- OverloadedStrings
+
 library:
   source-dirs: src
+  dependencies:
+    - containers
+    - text
 
 executables:
   icfpc-y2024-exe:
@@ -56,3 +62,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - icfpc-y2024
+    - tasty
+    - tasty-hunit
