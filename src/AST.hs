@@ -1,4 +1,4 @@
-module AST (AST, evalAst) where
+module AST (AST (..), evalAst) where
 
 import qualified Data.Text as T
 
@@ -29,6 +29,7 @@ data AST =
     | If AST AST AST
     | Var VarNo
     | Lambda VarNo AST
+    deriving (Eq, Show)
 
 evalAst :: AST -> AST
 evalAst = undefined

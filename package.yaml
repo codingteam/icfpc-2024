@@ -24,6 +24,7 @@ dependencies:
 - text >= 2.0.2
 - containers >= 0.6
 - http-conduit
+- megaparsec >= 9.6.1
 
 ghc-options:
 - -Wall
