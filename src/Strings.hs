@@ -3,7 +3,6 @@ module Strings where
 import Data.Char
 import qualified Data.Text as T
 import qualified Data.Map as M
-import Data.Monoid ((<>))
 
 fromGalaxy :: [Char]
 fromGalaxy = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`|~ \n"

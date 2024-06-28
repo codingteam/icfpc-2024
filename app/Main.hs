@@ -3,7 +3,6 @@ module Main (main) where
 import HttpRequests (performRequest, performRequest', performDownloadAllKnown)
 import System.Environment
 
-import System.Environment (getArgs)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Text.Pretty.Simple (pPrint)

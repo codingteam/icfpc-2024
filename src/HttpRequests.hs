@@ -1,7 +1,6 @@
 module HttpRequests (performRequest, performRequest', performDownloadAllKnown) where
 
 import Config
-import qualified Data.Text.IO as I
 import           Network.HTTP.Simple
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.ByteString.Char8 as BS
