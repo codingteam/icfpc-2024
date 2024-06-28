@@ -15,7 +15,7 @@ performRequest :: String -> IO ()
 performRequest requestText = do
     token <- readApiToken
     putStrLn $ "Performing request: " ++ requestText
-    let galaxyBody = T.concat ["S", S.textToGalaxy (T.pack requestText)]
+    let galaxyBody = S.textToGalaxy (T.pack requestText)
     let body = encodeUtf8 $ galaxyBody
     req <- parseRequest "POST https://boundvariable.space/communicate"
     let bearerBS = encodeUtf8 $ T.pack $ "Bearer " ++ (T.unpack token)

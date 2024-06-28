@@ -3,6 +3,7 @@ module Strings where
 import Data.Char
 import qualified Data.Text as T
 import qualified Data.Map as M
+import Data.Monoid ((<>))
 
 fromGalaxy :: [Char]
 fromGalaxy = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`|~ \n"
@@ -19,7 +20,7 @@ charFromGalaxy c
     | otherwise = fromGalaxy !! (ord c - 33)
 
 textToGalaxy :: T.Text -> T.Text
-textToGalaxy = T.map charToGalaxy
+textToGalaxy = ("S" <>) . T.map charToGalaxy
 
 charToGalaxy :: Char -> Char
 charToGalaxy c
