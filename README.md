@@ -110,7 +110,6 @@ Known Q&A
   get lambdaman
   ```
   A:
-  ````text
   Welcome to the Lambda-Man course.
 
   It was the year 2014, and many members of our community worked hard to control Lambda-Man. Now, ten years later, this wonderful event is still memorized by holding a small Lambda-Man competition.
@@ -161,4 +160,3 @@ Known Q&A
   ```
 
   Your score is number of bytes that the ICFP expressions consists of (i.e. the size of the POST body), so a lower score is better.
-  ````
