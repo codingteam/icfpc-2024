@@ -2,13 +2,29 @@ module Strings where
 
 import Data.Char
 import qualified Data.Text as T
+import qualified Data.Map as M
 
-stringRemap = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`|~ \n"
+fromGalaxy :: [Char]
+fromGalaxy = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`|~ \n"
 
-remapChar :: Char -> Char
-remapChar c
+toGalaxy :: [Char]
+toGalaxy = [ chr $ 33 + toGalaxyMap M.! c | c <- fromGalaxy ]
+
+toGalaxyMap :: M.Map Char Int
+toGalaxyMap = M.fromList $ zip fromGalaxy [0..]
+
+charFromGalaxy :: Char -> Char
+charFromGalaxy c
     | ord c < 33 || ord c > 126 = c
-    | otherwise = stringRemap !! (ord c - 33)
+    | otherwise = fromGalaxy !! (ord c - 33)
 
-remapString :: T.Text -> T.Text
-remapString = T.map remapChar
+textToGalaxy :: T.Text -> T.Text
+textToGalaxy = T.map charToGalaxy
+
+charToGalaxy :: Char -> Char
+charToGalaxy c
+    | c `elem` fromGalaxy = chr $ 33 + toGalaxyMap M.! c
+    | otherwise = c
+
+textFromGalaxy :: T.Text -> T.Text
+textFromGalaxy = T.map charFromGalaxy
