@@ -40,8 +40,8 @@ performRequest' toEncode requestText = do
 allKnownData :: [String]
 allKnownData = []
     ++ ["index", "echo", "scoreboard", "lambdaman", "spaceship", "language_test"]
-    ++ ["lambdaman" ++ show n | n <- [1..21]]
-    ++ ["spaceship" ++ show n | n <- [1..25]]
+    ++ ["lambdaman" ++ show n | n <- [1..21] :: [Int]]
+    ++ ["spaceship" ++ show n | n <- [1..25] :: [Int]]
 
 outDir :: String
 outDir = "data"
