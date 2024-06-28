@@ -57,10 +57,12 @@ main = do
     ["http-raw", request] -> performRequest' False request
     ["http-eval-galaxy", path] -> do
         txt <- TIO.readFile path
-        let Right program = parseExpression txt
-            echoProgram = Concat (Str "echo ") program
-            echoGalaxy = astToGalaxy echoProgram
-        performRequest' False (T.unpack echoGalaxy)
+        case parseExpression txt of
+          Right program -> do
+            let echoProgram = Concat (Str "echo ") program
+                echoGalaxy = astToGalaxy echoProgram
+            performRequest' False (T.unpack echoGalaxy)
+          Left err -> putStrLn $ "Failed to parse the file: " <> err
 
     ["http-all"] -> performDownloadAllKnown
     _ -> printHelp

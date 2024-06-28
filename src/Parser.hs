@@ -79,6 +79,7 @@ pBinary = do
                 'T' -> Take
                 'D' -> Drop
                 '$' -> Apply
+                _ -> error $ "BUG: unknown operator " ++ [sign]
     x1 <- pExpression
     space
     x2 <- pExpression
