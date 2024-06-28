@@ -51,6 +51,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - icfpc-y2024
+    - text
 
 tests:
   icfpc-y2024-test:
