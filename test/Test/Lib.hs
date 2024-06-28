@@ -8,10 +8,26 @@ import Lib
 libTests :: TestTree
 libTests = testGroup "Lib"
     [
-        testCase "Zero (from spec)" $ parseNumber "I!" @?= Just 0
-    ,   testCase "One (from spec)" $ parseNumber "I\"" @?= Just 1
-    ,   testCase "1337 (from spec)" $ parseNumber "I/6" @?= Just 1337
-    ,   testCase "Not a number" $ parseNumber "!" @?= Nothing
+        parseNumberTokenTests
+    ,   parseNumberTests
+    ]
+
+parseNumberTokenTests :: TestTree
+parseNumberTokenTests = testGroup "Lib.parseNumberToken"
+    [
+        testCase "Zero (from spec)" $ parseNumberToken "I!" @?= Just 0
+    ,   testCase "One (from spec)" $ parseNumberToken "I\"" @?= Just 1
+    ,   testCase "1337 (from spec)" $ parseNumberToken "I/6" @?= Just 1337
+    ,   testCase "Not a number" $ parseNumberToken "!" @?= Nothing
+    ,   testCase "Empty string" $ parseNumberToken "" @?= Nothing
+    ,   testCase "Number with empty body" $ parseNumberToken "I" @?= Nothing
+    ]
+
+parseNumberTests :: TestTree
+parseNumberTests = testGroup "Lib.parseNumberToken"
+    [
+        testCase "Zero (from spec)" $ parseNumber "!" @?= Just 0
+    ,   testCase "One (from spec)" $ parseNumber "\"" @?= Just 1
+    ,   testCase "1337 (from spec)" $ parseNumber "/6" @?= Just 1337
     ,   testCase "Empty string" $ parseNumber "" @?= Nothing
-    ,   testCase "Number with empty body" $ parseNumber "I" @?= Nothing
     ]
