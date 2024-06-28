@@ -26,6 +26,7 @@ library
       AST
       Config
       HttpRequests
+      Lambdaman
       Lib
       Parser
       Printer
@@ -40,9 +41,11 @@ library
       OverloadedStrings
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      base >=4.7 && <5
+      array
+    , base >=4.7 && <5
     , bytestring
     , containers
+    , hashable
     , http-conduit
     , megaparsec >=9.5.0
     , mtl
@@ -62,9 +65,11 @@ executable icfpc-y2024-exe
       OverloadedStrings
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      array
+    , base >=4.7 && <5
     , bytestring
     , containers >=0.6
+    , hashable
     , http-conduit
     , icfpc-y2024
     , megaparsec >=9.5.0
@@ -87,9 +92,11 @@ test-suite icfpc-y2024-test
       OverloadedStrings
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      array
+    , base >=4.7 && <5
     , bytestring
     , containers >=0.6
+    , hashable
     , http-conduit
     , icfpc-y2024
     , megaparsec >=9.5.0

@@ -26,6 +26,8 @@ dependencies:
 - http-conduit
 - megaparsec >= 9.5.0
 - pretty-simple
+- array
+- hashable
 
 ghc-options:
 - -Wall
