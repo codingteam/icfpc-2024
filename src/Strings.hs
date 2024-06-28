@@ -1,4 +1,7 @@
-module Strings where
+module Strings (
+    textToGalaxy
+  , textFromGalaxy
+) where
 
 import Data.Char
 import qualified Data.Text as T
@@ -6,9 +9,6 @@ import qualified Data.Map as M
 
 fromGalaxy :: [Char]
 fromGalaxy = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`|~ \n"
-
-toGalaxy :: [Char]
-toGalaxy = [ chr $ 33 + toGalaxyMap M.! c | c <- fromGalaxy ]
 
 toGalaxyMap :: M.Map Char Int
 toGalaxyMap = M.fromList $ zip fromGalaxy [0..]
