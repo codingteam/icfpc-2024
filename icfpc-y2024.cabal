@@ -42,11 +42,8 @@ library
       base >=4.7 && <5
     , bytestring
     , containers
-<<<<<<< HEAD
     , http-conduit
-=======
     , megaparsec >=9.6.1
->>>>>>> 42d7bac (First working parser.)
     , text
   default-language: Haskell2010
 
