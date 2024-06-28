@@ -39,17 +39,29 @@ evalAst :: AST -> Either T.Text AST
 evalAst input@(Boolean _) = Right input
 evalAst input@(Number _) = Right input
 evalAst input@(Str _) = Right input
-evalAst (Negate (Number input)) = Right $ Number (negate input)
-evalAst (Negate _) = Left "Non-integer input for unary negation"
-evalAst (Not (Boolean input)) = Right $ Boolean (not input)
-evalAst (Not _) = Left "Non-boolean input for \"not\""
-evalAst (StrToInt (Str input)) =
-  case parseNumber (textToGalaxy input) of
-    Just number -> Right $ Number number
-    Nothing -> Left $ "Failed to parse " <> input <> " as number"
-evalAst (StrToInt _) = Left "Non-string input to str-to-int"
-evalAst (IntToStr (Number input)) = Right $ Str $ textFromGalaxy $ numberToGalaxy input
-evalAst (IntToStr _) = Left "Non-integer input to int-to-str"
+evalAst (Negate input) = do
+  reduced <- evalAst input
+  case reduced of
+    (Number number) -> Right $ Number (negate number)
+    _ -> Left "Non-integer input for unary negation"
+evalAst (Not input) = do
+  reduced <- evalAst input
+  case reduced of
+    (Boolean bool) -> Right $ Boolean (not bool)
+    _ -> Left "Non-boolean input for \"not\""
+evalAst (StrToInt input) = do
+  reduced <- evalAst input
+  case reduced of
+    (Str str) ->
+      case parseNumber (textToGalaxy str) of
+        Just number -> Right $ Number number
+        Nothing -> Left $ "Failed to parse " <> str <> " as number"
+    _ -> Left "Non-string input to str-to-int"
+evalAst (IntToStr input) = do
+  reduced <- evalAst input
+  case reduced of
+    (Number number) -> Right $ Str $ textFromGalaxy $ numberToGalaxy number
+    _ -> Left "Non-integer input to int-to-str"
 -- evalAst (Add AST AST)
 -- evalAst (Sub AST AST)
 -- evalAst (Mult AST AST)
