@@ -12,11 +12,18 @@ Compilation
 $ stack build
 ```
 
+Configuring
+-----------
+Prepare file `TOKEN.txt` with the API key (in form of `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`, without `Bearer`).
+
 Running
 -------
 ```console
-$ stack exec icfpc-y2024-exe
+$ stack run icfpc-y2024-exe [args]
 ```
+
+where `args` are:
+- `http <request>` will perform a HTTP request, e.g. `http "get index"`.
 
 Testing
 -------

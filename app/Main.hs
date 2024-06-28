@@ -1,11 +1,17 @@
 module Main (main) where
 
+import HttpRequests (performRequest)
+import System.Environment
+
 import System.Environment (getArgs)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 
 import Lib
 import Strings
+
+printHelp :: IO ()
+printHelp = putStrLn "Possible args:\n - http <request>"
 
 main :: IO ()
 main = do
@@ -28,4 +34,5 @@ main = do
         txt <- TIO.readFile path
         TIO.putStr $ textFromGalaxy txt
 
-    _ -> putStrLn "Unknown arguments. See app/Main.hs for a list of available commands"
+    ["http", request] -> performRequest request
+    _ -> printHelp
