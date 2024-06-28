@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Printer where
 
 import qualified Data.Text as T

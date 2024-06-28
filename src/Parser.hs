@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Parser where
 
 import qualified Data.Text as T
