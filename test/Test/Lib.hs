@@ -12,4 +12,6 @@ libTests = testGroup "Lib"
     ,   testCase "One (from spec)" $ parseNumber "I\"" @?= Just 1
     ,   testCase "1337 (from spec)" $ parseNumber "I/6" @?= Just 1337
     ,   testCase "Not a number" $ parseNumber "!" @?= Nothing
+    ,   testCase "Empty string" $ parseNumber "" @?= Nothing
+    ,   testCase "Number with empty body" $ parseNumber "I" @?= Nothing
     ]
