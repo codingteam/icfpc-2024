@@ -92,9 +92,26 @@ evalAst (Mod lhs rhs) = do
   case (lhs', rhs') of
     (Number a, Number b) -> Right $ Number (a `rem` b)
     _ -> Left "Non-integer inputs to modulo"
--- evalAst (Lt AST AST)
--- evalAst (Gt AST AST)
--- evalAst (Equals AST AST)
+evalAst (Lt lhs rhs) = do
+  lhs' <- evalAst lhs
+  rhs' <- evalAst rhs
+  case (lhs', rhs') of
+    (Number a, Number b) -> Right $ Boolean (a < b)
+    _ -> Left "Non-integer inputs to less-than"
+evalAst (Gt lhs rhs) = do
+  lhs' <- evalAst lhs
+  rhs' <- evalAst rhs
+  case (lhs', rhs') of
+    (Number a, Number b) -> Right $ Boolean (a > b)
+    _ -> Left "Non-integer inputs to greater-than"
+evalAst (Equals lhs rhs) = do
+  lhs' <- evalAst lhs
+  rhs' <- evalAst rhs
+  case (lhs', rhs') of
+    (Number a, Number b) -> Right $ Boolean (a == b)
+    (Boolean a, Boolean b) -> Right $ Boolean (a == b)
+    (Str a, Str b) -> Right $ Boolean (a == b)
+    _ -> Left "Arguments to equals have mismatching types or they weren't reduced completely"
 -- evalAst (Or AST AST)
 -- evalAst (And AST AST)
 -- evalAst (Concat AST AST)
