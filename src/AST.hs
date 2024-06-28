@@ -112,8 +112,18 @@ evalAst (Equals lhs rhs) = do
     (Boolean a, Boolean b) -> Right $ Boolean (a == b)
     (Str a, Str b) -> Right $ Boolean (a == b)
     _ -> Left "Arguments to equals have mismatching types or they weren't reduced completely"
--- evalAst (Or AST AST)
--- evalAst (And AST AST)
+evalAst (Or lhs rhs) = do
+  lhs' <- evalAst lhs
+  rhs' <- evalAst rhs
+  case (lhs', rhs') of
+    (Boolean a, Boolean b) -> Right $ Boolean (a || b)
+    _ -> Left "Non-boolean inputs to \"or\""
+evalAst (And lhs rhs) = do
+  lhs' <- evalAst lhs
+  rhs' <- evalAst rhs
+  case (lhs', rhs') of
+    (Boolean a, Boolean b) -> Right $ Boolean (a && b)
+    _ -> Left "Non-boolean inputs to \"and\""
 -- evalAst (Concat AST AST)
 -- evalAst (Take AST AST)
 -- evalAst (Drop AST AST)
