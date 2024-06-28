@@ -27,6 +27,7 @@ parseNumber input
   where
     alphabet = M.fromList $ zip base94digits [0..]
 
+base94digits :: [Char]
 base94digits = ['!' .. '~']
 
 printNumber :: Integer -> T.Text
