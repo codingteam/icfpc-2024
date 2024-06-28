@@ -32,3 +32,9 @@ $ stack test
 ```
 
 [stack]: https://docs.haskellstack.org/en/stable/
+
+ICFP Language
+-------------
+
+See: https://icfpcontest2024.github.io/icfp.html
+
