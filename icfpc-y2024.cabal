@@ -23,6 +23,7 @@ source-repository head
 
 library
   exposed-modules:
+      AST
       Lib
       Strings
   other-modules:
@@ -62,6 +63,7 @@ test-suite icfpc-y2024-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Test.AST
       Test.Lib
       Paths_icfpc_y2024
   autogen-modules:
