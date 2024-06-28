@@ -10,6 +10,7 @@ libTests = testGroup "Lib"
     [
         parseNumberTokenTests
     ,   parseNumberTests
+    ,   numberToGalaxyTests
     ]
 
 parseNumberTokenTests :: TestTree
@@ -30,4 +31,12 @@ parseNumberTests = testGroup "Lib.parseNumberToken"
     ,   testCase "One (from spec)" $ parseNumber "\"" @?= Just 1
     ,   testCase "1337 (from spec)" $ parseNumber "/6" @?= Just 1337
     ,   testCase "Empty string" $ parseNumber "" @?= Nothing
+    ]
+
+numberToGalaxyTests :: TestTree
+numberToGalaxyTests = testGroup "Lib.numberToGalaxy"
+    [
+        testCase "Zero" $ numberToGalaxy 0 @?= "!"
+    ,   testCase "One" $ numberToGalaxy 1 @?= "\""
+    ,   testCase "1337" $ numberToGalaxy 1337 @?= "/6"
     ]

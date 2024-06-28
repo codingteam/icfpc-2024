@@ -2,8 +2,8 @@ module AST (AST(..), VarNo, evalAst) where
 
 import qualified Data.Text as T
 
-import Lib (parseNumber)
-import Strings (textToGalaxy)
+import Lib (parseNumber, numberToGalaxy)
+import Strings (textToGalaxy, textFromGalaxy)
 
 type VarNo = Integer
 
@@ -48,7 +48,8 @@ evalAst (StrToInt (Str input)) =
     Just number -> Right $ Number number
     Nothing -> Left $ "Failed to parse " <> input <> " as number"
 evalAst (StrToInt _) = Left "Non-string input to str-to-int"
--- evalAst (IntToStr AST)
+evalAst (IntToStr (Number input)) = Right $ Str $ textFromGalaxy $ numberToGalaxy input
+evalAst (IntToStr _) = Left "Non-integer input to int-to-str"
 -- evalAst (Add AST AST)
 -- evalAst (Sub AST AST)
 -- evalAst (Mult AST AST)

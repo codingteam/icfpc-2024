@@ -1,8 +1,11 @@
 module Lib
     ( parseNumber
     , parseNumberToken
+    , numberToGalaxy
     ) where
 
+import Data.Maybe (fromJust)
+import qualified Data.IntMap.Strict as IM
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
 
@@ -24,3 +27,13 @@ parseNumber input
         input
   where
     alphabet = M.fromList $ zip ['!' .. '~'] [0..]
+
+numberToGalaxy :: Integer -> T.Text
+numberToGalaxy 0 = "!"
+numberToGalaxy number = T.pack $ go [] number
+  where
+    go acc 0 = acc
+    go acc i = go (digitToChar (fromIntegral $ i `mod` 94) : acc) (i `div` 94)
+
+    digitToChar i = fromJust $ i `IM.lookup` alphabet
+    alphabet = IM.fromList $ zip [0..] ['!' .. '~']
