@@ -149,8 +149,43 @@ evalAstStep (Drop lhs rhs) = do
   case (lhs', rhs') of
     (Number a, Str b) -> Right $ Str (T.drop (fromIntegral a) b)
     _ -> Left "Invalid argument types to \"drop\""
--- evalAst (Apply AST AST)
--- evalAst (If AST AST AST)
--- evalAst (Var VarNo)
--- evalAst (Lambda VarNo AST)
-evalAstStep _ = undefined
+evalAstStep (If cond lhs rhs) = do
+  cond' <- evalAst cond
+  case cond' of
+    Boolean bool -> Right $ if bool then lhs else rhs
+    _ -> Left "Condition doesn't evaluate to a boolean"
+evalAstStep input@(Var _) = Right input
+evalAstStep input@(Lambda _ _) = Right input
+evalAstStep (Apply fn arg) = do
+  fn' <- evalAst fn
+  case fn' of
+    Lambda lambdaVar body ->
+      let body' = replaceVar lambdaVar arg body
+      in Right body'
+    _ -> Left "First argument of apply didn't evaluate to a lambda"
+  where
+    replaceVar var value (Var varno) =
+      if varno == var
+        then value
+        else Var varno
+    replaceVar var value (Negate ast) = Negate $ replaceVar var value ast
+    replaceVar var value (Not ast) = Not $ replaceVar var value ast
+    replaceVar var value (StrToInt ast) = StrToInt $ replaceVar var value ast
+    replaceVar var value (IntToStr ast) = IntToStr $ replaceVar var value ast
+    replaceVar var value (Add lhs rhs) = Add (replaceVar var value lhs) (replaceVar var value rhs)
+    replaceVar var value (Sub lhs rhs) = Sub (replaceVar var value lhs) (replaceVar var value rhs)
+    replaceVar var value (Mult lhs rhs) = Mult (replaceVar var value lhs) (replaceVar var value rhs)
+    replaceVar var value (Div lhs rhs) = Div (replaceVar var value lhs) (replaceVar var value rhs)
+    replaceVar var value (Mod lhs rhs) = Mod (replaceVar var value lhs) (replaceVar var value rhs)
+    replaceVar var value (Lt lhs rhs) = Lt (replaceVar var value lhs) (replaceVar var value rhs)
+    replaceVar var value (Gt lhs rhs) = Gt (replaceVar var value lhs) (replaceVar var value rhs)
+    replaceVar var value (Equals lhs rhs) = Equals (replaceVar var value lhs) (replaceVar var value rhs)
+    replaceVar var value (Or lhs rhs) = Or (replaceVar var value lhs) (replaceVar var value rhs)
+    replaceVar var value (And lhs rhs) = And (replaceVar var value lhs) (replaceVar var value rhs)
+    replaceVar var value (Concat lhs rhs) = Concat (replaceVar var value lhs) (replaceVar var value rhs)
+    replaceVar var value (Take lhs rhs) = Take (replaceVar var value lhs) (replaceVar var value rhs)
+    replaceVar var value (Drop lhs rhs) = Drop (replaceVar var value lhs) (replaceVar var value rhs)
+    replaceVar var value (Apply lhs rhs) = Apply (replaceVar var value lhs) (replaceVar var value rhs)
+    replaceVar var value (If cond lhs rhs) = If (replaceVar var value cond) (replaceVar var value lhs) (replaceVar var value rhs)
+    replaceVar var value (Lambda varno body) = Lambda varno (replaceVar var value body)
+    replaceVar _ _ expr = expr
