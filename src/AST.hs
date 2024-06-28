@@ -124,9 +124,24 @@ evalAst (And lhs rhs) = do
   case (lhs', rhs') of
     (Boolean a, Boolean b) -> Right $ Boolean (a && b)
     _ -> Left "Non-boolean inputs to \"and\""
--- evalAst (Concat AST AST)
--- evalAst (Take AST AST)
--- evalAst (Drop AST AST)
+evalAst (Concat lhs rhs) = do
+  lhs' <- evalAst lhs
+  rhs' <- evalAst rhs
+  case (lhs', rhs') of
+    (Str a, Str b) -> Right $ Str (T.concat [a, b])
+    _ -> Left "Non-string inputs to concat"
+evalAst (Take lhs rhs) = do
+  lhs' <- evalAst lhs
+  rhs' <- evalAst rhs
+  case (lhs', rhs') of
+    (Number a, Str b) -> Right $ Str (T.take (fromIntegral a) b)
+    _ -> Left "Invalid argument types to \"take\""
+evalAst (Drop lhs rhs) = do
+  lhs' <- evalAst lhs
+  rhs' <- evalAst rhs
+  case (lhs', rhs') of
+    (Number a, Str b) -> Right $ Str (T.drop (fromIntegral a) b)
+    _ -> Left "Invalid argument types to \"drop\""
 -- evalAst (Apply AST AST)
 -- evalAst (If AST AST AST)
 -- evalAst (Var VarNo)
