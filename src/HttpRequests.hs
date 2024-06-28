@@ -1,4 +1,4 @@
-module HttpRequests (performRequest, performDownloadAllKnown) where
+module HttpRequests (performRequest, performRequest', performDownloadAllKnown) where
 
 import Config
 import qualified Data.Text.IO as I
@@ -15,16 +15,20 @@ import Control.Concurrent (threadDelay)
 import Control.Monad (forM_)
 
 performRequest :: String -> IO ()
-performRequest requestText = do
+performRequest = performRequest' True
+
+performRequest' :: Bool -> String -> IO ()
+performRequest' toEncode requestText = do
     token <- readApiToken
     putStrLn $ "Performing request: " ++ requestText
     let galaxyBody = S.textToGalaxy (T.pack requestText)
+    let bodyToSend = if toEncode then galaxyBody else T.pack requestText
     req <- parseRequest "POST https://boundvariable.space/communicate"
     let bearerHeader = T.concat ["Bearer ", token]
 
-    BS.putStrLn $ BS.concat ["Sending request in Galaxy: ", DTE.encodeUtf8 galaxyBody]
+    BS.putStrLn $ BS.concat ["Sending request in Galaxy: ", DTE.encodeUtf8 bodyToSend]
     response <- httpLBS
-     $ setRequestBodyLBS (BS.fromStrict $ DTE.encodeUtf8 galaxyBody)
+     $ setRequestBodyLBS (BS.fromStrict $ DTE.encodeUtf8 bodyToSend)
      $ setRequestHeader "Authorization" [DTE.encodeUtf8 bearerHeader] req
     let responseBody = getResponseBody response
 

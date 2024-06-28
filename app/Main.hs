@@ -1,6 +1,6 @@
 module Main (main) where
 
-import HttpRequests (performRequest, performDownloadAllKnown)
+import HttpRequests (performRequest, performRequest', performDownloadAllKnown)
 import System.Environment
 
 import System.Environment (getArgs)
@@ -11,6 +11,8 @@ import Text.Pretty.Simple (pPrint)
 import Lib
 import Strings
 import Parser
+import AST
+import Printer
 
 printHelp :: IO ()
 printHelp = putStrLn "Possible args:\n - http <request>\n- http-all"
@@ -43,5 +45,13 @@ main = do
             Right ast -> pPrint ast
 
     ["http", request] -> performRequest request
+    ["http-raw", request] -> performRequest' False request
+    ["http-eval-galaxy", path] -> do
+        txt <- TIO.readFile path
+        let Right program = parseExpression txt
+            echoProgram = Concat (Str "echo ") program
+            echoGalaxy = astToGalaxy echoProgram
+        performRequest' False (T.unpack echoGalaxy)
+
     ["http-all"] -> performDownloadAllKnown
     _ -> printHelp
