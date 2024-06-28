@@ -2,6 +2,7 @@ module Test.Lib (libTests) where
 
 import Test.Tasty
 import Test.Tasty.HUnit
+import Test.Tasty.QuickCheck
 
 import Lib
 
@@ -10,6 +11,7 @@ libTests = testGroup "Lib"
     [
         parseNumberTokenTests
     ,   parseNumberTests
+    ,   propTests
     ]
 
 parseNumberTokenTests :: TestTree
@@ -30,4 +32,12 @@ parseNumberTests = testGroup "Lib.parseNumberToken"
     ,   testCase "One (from spec)" $ parseNumber "\"" @?= Just 1
     ,   testCase "1337 (from spec)" $ parseNumber "/6" @?= Just 1337
     ,   testCase "Empty string" $ parseNumber "" @?= Nothing
+    ]
+
+propTests :: TestTree
+propTests = testGroup "Property tests"
+    [
+        testProperty
+          "parseNumber (printNumber x) == Just x holds for any non-negative x"
+          (\(NonNegative x) -> parseNumber (printNumber x) == Just x)
     ]

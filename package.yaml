@@ -72,3 +72,4 @@ tests:
     - icfpc-y2024
     - tasty
     - tasty-hunit
+    - tasty-quickcheck
