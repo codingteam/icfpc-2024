@@ -51,6 +51,10 @@ Usage
   ```console
   stack run fileFromGalaxy out.txt
   ```
+- Re-submit lambdaman solutions:
+  ```console
+  for i in `seq 21`; do stack run -- http-lambdaman-solution-using-bitcoding $i $(cat data/lambdaman/lambdaman${i}.sol) ; sleep 3 ; done
+  ```
 
 ICFP Language
 -------------
