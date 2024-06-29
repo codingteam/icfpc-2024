@@ -51,10 +51,11 @@ arithmeticTests :: TestTree
 arithmeticTests = testGroup "Sim3D.arithmetic"
     [
         testCase "Addition" $ doStep (parseBoard ". 1 .\n2 + .") @?= parseBoard ". . .\n. + 3\n. 3 ."
-    ,   testCase "Subtraction" $ doStep (parseBoard ". 2 .\n1 - .") @?= parseBoard ". . .\n. - 1\n. -1 ."
+    ,   testCase "Subtraction" $ doStep (parseBoard ". 2 .\n1 - .") @?= parseBoard ". . .\n. - -1 .\n. -1 ."
     ,   testCase "Multiplication" $ doStep (parseBoard ". 2 .\n3 * .") @?= parseBoard ". . .\n. * 6\n. 6 ."
     ,   testCase "Division" $ doStep (parseBoard ". 4 .\n6 / .") @?= parseBoard ". . .\n. / 1\n. 1 ."
     ,   testCase "Modulo" $ doStep (parseBoard ". 4 .\n6 % .") @?= parseBoard ". . .\n. % 2\n. 2 ."
+    ,   testCase "Noop" $ doStep (parseBoard ". 4 .\n. % .") @?= parseBoard ". 4 .\n. % ."
     ]
 
 comparisonTests :: TestTree

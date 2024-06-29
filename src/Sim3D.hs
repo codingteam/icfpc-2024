@@ -9,7 +9,7 @@ import Control.Monad.State
 
 data Cell =
       Empty
-    | Value Int
+    | Value Integer
     | MoveLeft
     | MoveRight
     | MoveUp
@@ -87,7 +87,7 @@ readBoard path = do
     contents <- DTI.readFile path
     return $ parseBoard contents
 
-type Inputs = (Int, Int)
+type Inputs = (Integer, Integer)
 
 replaceInputs :: Board -> Inputs -> Board
 replaceInputs board (a, b) =
@@ -211,9 +211,27 @@ updateCell pos@(x, y) = do
         MoveRight -> moveCell (x - 1, y) (x + 1, y)
         MoveUp -> moveCell (x, y + 1) (x, y - 1)
         MoveDown -> moveCell (x, y - 1) (x, y + 1)
+        Plus -> performArithmetic (+) pos
+        Minus -> performArithmetic (-) pos
+        Multiply -> performArithmetic (*) pos
+        Divide -> performArithmetic div pos
+        Modulo -> performArithmetic mod pos
         Value _ -> pure ()
         Empty -> pure ()
         _ -> pure () -- TODO: implement actions for the other cells
+
+performArithmetic :: (Integer -> Integer -> Integer) -> (Integer, Integer) -> Sim3dM ()
+performArithmetic op (x, y) = do
+    v1 <- readAt (x - 1, y    )
+    v2 <- readAt (x    , y - 1)
+    case (v1, v2) of
+        (Value a, Value b) -> do
+            let result = a `op` b
+            writeTo (x - 1, y) Empty
+            writeTo (x, y - 1) Empty
+            writeTo (x + 1, y) (Value result)
+            writeTo (x, y + 1) (Value result)
+        _ -> pure ()
 
 -- Brings the whole board back into coordinate (0, 0), clean up Empty cells
 normalize :: Board -> Board
