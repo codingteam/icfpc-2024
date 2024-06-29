@@ -220,8 +220,8 @@ getDistance pos dir distances =
         Nothing -> fromIntegral unchecked
         Just d -> fromIntegral d
 
-greedyStep :: Problem -> Maybe (Direction, Problem)
-greedyStep p =
+greedyStep :: Bool -> Problem -> Maybe (Direction, Problem)
+greedyStep checkNPills p =
     let distances = makeWave (pGrid p) pillCell
         alternatives = mapMaybe check [U, D, L, R]
         check dir =
@@ -230,15 +230,47 @@ greedyStep p =
                 Nothing -> Nothing
                 Just x | x == obstacle -> Nothing
                 Just d -> Just (dir, d, evalStep dir p)
-    in  if pNPills p == 0 || null alternatives
+    in  if (checkNPills && pNPills p == 0) || null alternatives
             then Nothing
             else Just $ (\(dir,_,p') -> (dir, p')) $ minimumBy (comparing (\(_,d,_) -> d)) alternatives
 
 greedySolve :: Problem -> [Direction]
 greedySolve p =
-    case greedyStep p of
+    case greedyStep True p of
         Nothing -> []
         Just (step, p') -> step : greedySolve p'
+
+hasNeighbourPills :: Problem -> Bool
+hasNeighbourPills p = any check [U, L, D, R]
+    where
+        check dir =
+            case pGrid p !? calcStep dir (pPosition p) of
+                Just x | x == pillCell -> True
+                _ -> False
+
+greedyGoToPill :: Problem -> Path -> A (Maybe (Path, Problem))
+greedyGoToPill p path = do
+    case greedyStep False p of
+        Nothing -> return Nothing
+        Just (step, p') -> do
+            -- liftIO $ putStrLn $ "Greedy check: " ++ show step ++ ": " ++ show (pNPills p) ++ " -> " ++ show (pNPills p') ++ ", has neigbour pills => " ++ show (hasNeighbourPills p')
+            markClosed p'
+            let path' = appendPath step p' path
+            if pNPills p' < pNPills p && (pNPills p' == 0 || hasNeighbourPills p')
+                then do
+                    -- liftIO $ putStrLn $ "Greedy returns: " ++ show path'
+                    return $ Just (path', p')
+                else do
+                    -- liftIO $ putStrLn "Greedy iteration"
+                    greedyGoToPill p' path'
+
+markClosed :: Problem -> A ()
+markClosed grid =
+    modify $ \st -> st {aClosed = insertPS grid (aClosed st)}
+
+enqueue :: Value -> Path -> A ()
+enqueue priority path = do
+    modify $ \st -> st {aOpen = Q.insert priority path (aOpen st)}
 
 aStar :: Problem -> A (Maybe Path)
 aStar p = do
@@ -249,7 +281,9 @@ aStar p = do
         loop = do
             open <- gets aOpen
             case Q.minView open of
-                Nothing -> return Nothing
+                Nothing -> do
+                    liftIO $ putStrLn "end of queue"
+                    return Nothing
                 Just (path, rest) -> do
                     liftIO $ putStrLn $ "From queue: " ++ show path
                     modify $ \st -> st {aOpen = rest}
@@ -262,18 +296,27 @@ aStar p = do
                       else if isGoal $ pGrid grid
                              then return $ Just path
                              else do
-                               modify $ \st -> st {aClosed = insertPS grid (aClosed st)}
-                               let distancesToPills = makeWave (pGrid grid) pillCell
-                               forM_ (successors grid) $ \(step, y) -> do
-                                 let path' = appendPath step y path
-                                 let distanceToPills = getDistance (pPosition grid) step distancesToPills
-                                 let (priority1, priority2) = calcPriority' distanceToPills path'
-                                 liftIO $ putStrLn $ "Check: " ++ show path' ++ ": " ++ show (pPosition grid) ++ " -> " ++ show (pPosition $ extractPath path')
-                                 liftIO $ putStr $ showProblem $ evalPath path'
-                                 liftIO $ putStrLn $ "Priority: " ++ show (priority1, priority2)
-                                 let priority = priority1 + priority2
-                                 modify $ \st -> st {aOpen = Q.insert priority path' (aOpen st)}
-                               loop
+                               markClosed grid
+                               mbToPill <- greedyGoToPill grid path
+                               case mbToPill of
+                                 Nothing -> return Nothing
+                                 Just (pathToPill, grid') -> do
+                                   -- liftIO $ putStrLn $ "Greedy algorithm returned: " ++ show pathToPill
+                                   -- liftIO $ putStr $ showProblem grid'
+                                   if isGoal $ pGrid grid'
+                                     then return $ Just pathToPill
+                                     else do
+                                       let distancesToPills = makeWave (pGrid grid') pillCell
+                                       forM_ (successors grid') $ \(step, y) -> do
+                                         let path' = appendPath step y pathToPill
+                                         let distanceToPills = getDistance (pPosition grid') step distancesToPills
+                                         let (priority1, priority2) = calcPriority' distanceToPills path'
+                                         liftIO $ putStrLn $ "Check: " ++ show path' ++ ": " ++ show (pPosition grid') ++ " -> " ++ show (pPosition $ extractPath path')
+                                         liftIO $ putStr $ showProblem $ evalPath path'
+                                         liftIO $ putStrLn $ "Priority: " ++ show (priority1, priority2)
+                                         let priority = priority1 + priority2
+                                         enqueue priority path'
+                                       loop
 
 evalAStar :: Problem -> IO (Maybe Path)
 evalAStar p = evalStateT (aStar p) emptyAState
