@@ -13,10 +13,17 @@ import qualified Strings as S
 import Control.Concurrent (threadDelay)
 import Control.Monad (forM_)
 
+import Text.Pretty.Simple (pPrint)
+
+import Lib
+import Strings
+import Parser
+import AST
+import Printer
+
 performRequest :: T.Text -> IO ()
 performRequest bodyToSend = do
     token <- readApiToken
-    DTI.putStrLn $ "Performing request: " <> bodyToSend
     req <- parseRequest "POST https://boundvariable.space/communicate"
     let bearerHeader = T.concat ["Bearer ", token]
 
@@ -26,11 +33,14 @@ performRequest bodyToSend = do
      $ setRequestHeader "Authorization" [DTE.encodeUtf8 bearerHeader] req
     let responseBody = getResponseBody response
 
-    if BL.index responseBody 0 == 'S' then
-        let galaxyEncodedBody = BL.drop 1 responseBody in
-        putStrLn $ "Received response in Galaxy:\n" ++ (T.unpack $ S.textFromGalaxy $ L.toStrict $ DTLE.decodeUtf8 $ galaxyEncodedBody)
-    else
-        BL.putStrLn $ BL.concat ["Received raw response: ", responseBody]
+    BL.putStrLn $ BL.concat ["Received response in Galaxy: ", responseBody]
+
+    case parseExpression (DTE.decodeUtf8 $ BS.concat . BL.toChunks $ responseBody) of
+        Left err -> putStrLn $ "Cannot parse: " ++ err
+        Right program ->
+            case evalAst program of
+                Left err -> DTI.putStrLn $ "Cannot evaluate: " <> err
+                Right result -> pPrint result
 
 allKnownData :: [String]
 allKnownData = []

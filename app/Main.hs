@@ -73,6 +73,10 @@ main = do
 
     ["upload", problem, path] -> do
         txt <- TIO.readFile path
-        performRequest $ "solve " <> (T.pack problem) <> " " <> txt
+        performRequest $ textToGalaxy $ "solve " <> (T.pack problem) <> " " <> txt
+
+    ["test", problem, path] -> do
+        txt <- TIO.readFile path
+        performRequest $ textToGalaxy $ "test " <> (T.pack problem) <> " " <> txt
 
     _ -> printHelp
