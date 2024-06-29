@@ -203,13 +203,13 @@ initWave grid start =
 
 makeWave :: Grid -> Cell -> Grid16
 makeWave grid start =
-    let waves = initWave grid start
+    let initialWaves = initWave grid start
         loop mark mbIdxs waves =
             let (waves', nextIdxs) = waveIteration mark waves mbIdxs
             in  if hasUnchecked waves'
                     then loop (mark+1) (Just nextIdxs) waves'
                     else waves'
-    in  loop 0 Nothing waves
+    in  loop 0 Nothing initialWaves
 
 getDistance :: Position -> Direction -> Grid16 -> Value
 getDistance pos dir distances =
@@ -282,22 +282,22 @@ chunksOf n lst = take n lst : chunksOf n (drop n lst)
 -}
 
 decodeProblem :: [String] -> Problem
-decodeProblem lines =
-    let Just originY = findIndex ('L' `elem`) lines
-        Just originX = elemIndex 'L' $ lines !! originY
-        sizeY = length lines
-        sizeX = length (head lines)
+decodeProblem fileLines =
+    let Just originY = findIndex ('L' `elem`) fileLines
+        Just originX = elemIndex 'L' $ fileLines !! originY
+        sizeY = length fileLines
+        sizeX = length (head fileLines)
 
         decodeChar ' ' = emptyCell
         decodeChar 'L' = emptyCell
         decodeChar '#' = wallCell
         decodeChar '.' = pillCell
 
-        lines' = concatMap (map decodeChar) lines
-        indices :: [Position]
-        indices = [(y, x) | y <- [0..sizeY-1], x <- [0..sizeX-1]]
+        lines' = concatMap (map decodeChar) fileLines
+        cellIndices :: [Position]
+        cellIndices = [(y, x) | y <- [0..sizeY-1], x <- [0..sizeX-1]]
         grid :: Grid
-        grid = U.array ((0,0), (sizeY-1, sizeX-1)) $ zip indices lines'
+        grid = U.array ((0,0), (sizeY-1, sizeX-1)) $ zip cellIndices lines'
         origin = (originY, originX)
         nPills = calcNPills grid
     in  Problem grid origin origin nPills
