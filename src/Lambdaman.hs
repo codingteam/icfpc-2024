@@ -12,7 +12,8 @@ import qualified Data.Array.MArray as M
 import GHC.Generics
 import Data.Hashable
 import Data.Maybe
-import Data.List (findIndex, elemIndex)
+import Data.Ord (comparing)
+import Data.List (findIndex, elemIndex, minimumBy)
 import qualified Data.HashSet as H
 import qualified Data.PQueue.Prio.Min as Q
 import Data.Word
@@ -59,6 +60,9 @@ data Path = Path {
       ptSteps :: ![Direction]
     , ptOriginal :: Problem
     }
+
+showPath :: [Direction] -> String
+showPath steps = concatMap show $ steps
 
 instance Show Path where
     show p = concatMap show $ reverse $ ptSteps p
@@ -208,6 +212,26 @@ getDistance pos dir distances =
     case distances !? calcStep dir pos of
         Nothing -> fromIntegral unchecked
         Just d -> fromIntegral d
+
+greedyStep :: Problem -> Maybe (Direction, Problem)
+greedyStep p =
+    let distances = makeWave (pGrid p) pillCell
+        alternatives = mapMaybe check [U, D, L, R]
+        check dir =
+            let pos' = calcStep dir (pPosition p)
+            in case distances !? pos' of
+                Nothing -> Nothing
+                Just x | x == obstacle -> Nothing
+                Just d -> Just (dir, d, evalStep dir p)
+    in  if pNPills p == 0 || null alternatives
+            then Nothing
+            else Just $ (\(dir,_,p') -> (dir, p')) $ minimumBy (comparing (\(_,d,_) -> d)) alternatives
+
+greedySolve :: Problem -> [Direction]
+greedySolve p =
+    case greedyStep p of
+        Nothing -> []
+        Just (step, p') -> step : greedySolve p'
 
 aStar :: Problem -> A (Maybe Path)
 aStar p = do
