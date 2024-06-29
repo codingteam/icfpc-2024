@@ -39,8 +39,9 @@ contains
       if (next_star%x < ship%x) then
         if (steps(nsteps-1) == 0 .and. &
             steps(nsteps-2) == 6) then
-          nsteps = nsteps - 2
-          steps(nsteps) = 5
+          nsteps = nsteps - 1
+          steps(nsteps-1) = 5
+          steps(nsteps) = 0
         else
           steps(nsteps) = 4
         end if
@@ -57,8 +58,9 @@ contains
       else if (next_star%x > ship%x) then
         if (steps(nsteps-1) == 0 .and. &
             steps(nsteps-2) == 4) then
-          nsteps = nsteps - 2
-          steps(nsteps) = 5
+          nsteps = nsteps - 1
+          steps(nsteps-1) = 5
+          steps(nsteps) = 0
         else
           steps(nsteps) = 6
         end if
@@ -78,8 +80,9 @@ contains
       if (next_star%y < ship%y) then
         if (steps(nsteps-1) == 0 .and. &
             steps(nsteps-2) == 8) then
-          nsteps = nsteps - 2
-          steps(nsteps) = 5
+          nsteps = nsteps - 1
+          steps(nsteps-1) = 5
+          steps(nsteps) = 0
         else
           steps(nsteps) = 2
         end if
@@ -96,8 +99,9 @@ contains
       else if (next_star%y > ship%y) then
         if (steps(nsteps-1) == 0 .and. &
             steps(nsteps-2) == 2) then
-          nsteps = nsteps - 2
-          steps(nsteps) = 5
+          nsteps = nsteps - 1
+          steps(nsteps-1) = 5
+          steps(nsteps) = 0
         else
           steps(nsteps) = 8
         end if
@@ -123,12 +127,15 @@ program main
   type(star_t), allocatable :: stars(:)
   type(ship_t) :: ship
   integer(1), allocatable :: steps(:)
-  integer :: nsteps, task_id
+  integer :: nsteps, task_id, i
   allocate(steps(-1:max_steps), source = 0_1)
   read(*,*) task_id
   stars = load_stars(task_id)
   nsteps = walk(ship, stars, steps) - 1
-  write(*, "(1000000I0)", advance="no") steps(1:nsteps)
+  do i = 1, nsteps
+    if (steps(i) /= 0) &
+      write(*, "(I0)", advance="no") steps(i)
+  end do
 contains
   function load_stars(task_id) result(stars)
     integer, parameter :: N_size(26) = &
