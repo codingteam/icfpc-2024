@@ -31,8 +31,8 @@ contains
         call walk_x()
         call walk_y()
       else
-        call walk_x()
         call walk_y()
+        call walk_x()
       end if
     end do
   contains
