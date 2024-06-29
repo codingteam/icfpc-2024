@@ -36,7 +36,8 @@ data Direction = U | R | D | L
     deriving (Eq, Show)
 
 type Position = (Int, Int)
-type Grid = UArray Position Cell
+newtype Grid = Grid { gGrid :: UArray Position Cell }
+    deriving (Eq, Show)
 type Grid16 = UArray Position Word16
 
 data Problem = Problem {
@@ -50,8 +51,8 @@ data Problem = Problem {
 findGridIndices :: (Eq a, IArray UArray a) => a -> UArray Position a -> [Position]
 findGridIndices c grid = map fst $ filter (\(_i, e) -> e == c) $ U.assocs grid
 
-instance Hashable (UArray (Int,Int) Cell) where
-    hashWithSalt salt a = foldr (flip hashWithSalt) salt $ findGridIndices pillCell a
+instance Hashable Grid where
+    hashWithSalt salt (Grid a) = foldr (flip hashWithSalt) salt $ findGridIndices pillCell a
 
 instance Hashable Problem where
     hashWithSalt salt p =
@@ -121,31 +122,32 @@ calcStep L (y,x) = (y, x-1)
 evalStep :: Direction -> Problem -> Problem
 evalStep step !p =
     let pos' = calcStep step (pPosition p)
-    in case pGrid p !? pos' of
+        grid = gGrid $ pGrid p
+    in case grid !? pos' of
         Nothing -> p
         Just 2 -> p
-        Just 1 -> p {pGrid = pGrid p // [(pos', emptyCell)], pPosition = pos', pNPills = pNPills p - 1}
-        Just 0 -> p {pGrid = pGrid p // [(pos', emptyCell)], pPosition = pos'}
+        Just 1 -> p {pGrid = Grid $ grid // [(pos', emptyCell)], pPosition = pos', pNPills = pNPills p - 1}
+        Just 0 -> p {pGrid = Grid $ grid // [(pos', emptyCell)], pPosition = pos'}
         Just x -> error $ "BUG: impossible cell value " ++ show x
 
 evalPath :: Path -> Problem
 evalPath path = foldr evalStep (ptOriginal path) (ptSteps path)
 
 isGoal :: Grid -> Bool
-isGoal g = not $ any (== pillCell) $ U.elems g
+isGoal (Grid g) = not $ any (== pillCell) $ U.elems g
 
 successors :: Problem -> [(Direction, Problem)]
 successors p = mapMaybe check [U, R, D, L]
     where
         check step =
             let pos' = calcStep step (pPosition p)
-            in  case pGrid p !? pos' of
+            in  case gGrid (pGrid p) !? pos' of
                     Just 1 -> Just (step, evalStep step $! p)
                     Just 0 -> Just (step, evalStep step $! p)
                     _ -> Nothing
 
 calcNPills :: Grid -> Value
-calcNPills grid = length $ filter (== pillCell) $ U.elems grid
+calcNPills (Grid grid) = length $ filter (== pillCell) $ U.elems grid
 
 calcPriority' :: Value -> Path -> (Value, Value)
 calcPriority' distanceToPills path = (originToCurrent, currentToGoal)
@@ -192,7 +194,7 @@ hasUnchecked :: Grid16 -> Bool
 hasUnchecked grid = not $ null $ findGridIndices unchecked grid
 
 initWave :: Grid -> Cell -> Grid16
-initWave grid start =
+initWave (Grid grid) start =
     let bs = bounds grid
         waves = A.array bs [(i, translate $ grid A.! i) | i <- A.indices grid]
         startMark = 0
@@ -299,7 +301,7 @@ decodeProblem fileLines =
         cellIndices :: [Position]
         cellIndices = [(y, x) | y <- [0..sizeY-1], x <- [0..sizeX-1]]
         grid :: Grid
-        grid = U.array ((0,0), (sizeY-1, sizeX-1)) $ zip cellIndices lines'
+        grid = Grid $ U.array ((0,0), (sizeY-1, sizeX-1)) $ zip cellIndices lines'
         origin = (originY, originX)
         nPills = calcNPills grid
     in  Problem grid origin origin nPills
