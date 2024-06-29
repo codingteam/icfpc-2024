@@ -12,6 +12,7 @@ import Strings
 import Parser
 import AST
 import Printer
+import StringBitCoding
 
 printHelp :: IO ()
 printHelp = putStrLn "Possible args:\n - http <request>\n- http-all"
@@ -62,6 +63,11 @@ main = do
                 echoGalaxy = astToGalaxy echoProgram
             performRequest echoGalaxy
           Left err -> putStrLn $ "Failed to parse the file: " <> err
+
+    ["http-lambdaman-solution-using-bitcoding", problem_no, solution] -> do
+        let packed = toSelfExtractingBitcode $ T.pack solution
+            program = Concat (Str $ "solve lambdaman" <> (T.pack problem_no) <> " ") packed
+        performRequest $ astToGalaxy program
 
     ["http-all"] -> performDownloadAllKnown
 

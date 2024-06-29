@@ -1,11 +1,17 @@
 module StringBitCoding (
     bitcodeDecompressor
 ,   bitcodeString
+,   toSelfExtractingBitcode
 ) where
 
 import qualified Data.Text as T
 
 import AST
+
+--- Encodes a lambdaman solution into an expression which, when evaluated,
+--- produces the initial solution.
+toSelfExtractingBitcode :: T.Text -> AST
+toSelfExtractingBitcode input = Apply bitcodeDecompressor (bitcodeString input)
 
 --- Encodes a lambdaman solution (a string of "UDLR" characters) as a number
 --- (to be decoded on by `bitcodeDecompressor`).

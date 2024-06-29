@@ -31,7 +31,7 @@ propTests = testGroup "Property tests"
         testProperty
           "we can decode what we encoded"
           (\(LambdamanSolution s) ->
-                let encoded = bitcodeString s
-                    decoded = evalAst $ (Apply bitcodeDecompressor encoded)
+                let encoded = toSelfExtractingBitcode s
+                    decoded = evalAst encoded
                 in decoded == Right (Str s))
     ]
