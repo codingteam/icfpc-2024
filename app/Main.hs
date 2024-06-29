@@ -1,6 +1,6 @@
 module Main (main) where
 
-import HttpRequests (performRequest, performRequest', performDownloadAllKnown)
+import HttpRequests (performRequest, performDownloadAllKnown)
 import System.Environment
 
 import qualified Data.Text as T
@@ -52,21 +52,21 @@ main = do
                     Left err -> TIO.putStrLn $ "Cannot evaluate: " <> err
                     Right result -> pPrint result
 
-    ["http", request] -> performRequest request
-    ["http-raw", request] -> performRequest' False request
+    ["http", request] -> performRequest $ textToGalaxy $ T.pack request
+    ["http-raw", request] -> performRequest $ T.pack request
     ["http-eval-galaxy", path] -> do
         txt <- TIO.readFile path
         case parseExpression txt of
           Right program -> do
             let echoProgram = Concat (Str "echo ") program
                 echoGalaxy = astToGalaxy echoProgram
-            performRequest' False (T.unpack echoGalaxy)
+            performRequest echoGalaxy
           Left err -> putStrLn $ "Failed to parse the file: " <> err
 
     ["http-all"] -> performDownloadAllKnown
 
     ["upload", problem, path] -> do
         txt <- TIO.readFile path
-        performRequest $ "solve " ++ problem ++ " " ++ (T.unpack txt)
+        performRequest $ "solve " <> (T.pack problem) <> " " <> txt
 
     _ -> printHelp

@@ -1,4 +1,4 @@
-module HttpRequests (performRequest, performRequest', performDownloadAllKnown) where
+module HttpRequests (performRequest, performDownloadAllKnown) where
 
 import Config
 import           Network.HTTP.Simple
@@ -13,15 +13,10 @@ import qualified Strings as S
 import Control.Concurrent (threadDelay)
 import Control.Monad (forM_)
 
-performRequest :: String -> IO ()
-performRequest = performRequest' True
-
-performRequest' :: Bool -> String -> IO ()
-performRequest' toEncode requestText = do
+performRequest :: T.Text -> IO ()
+performRequest bodyToSend = do
     token <- readApiToken
-    putStrLn $ "Performing request: " ++ requestText
-    let galaxyBody = S.textToGalaxy (T.pack requestText)
-    let bodyToSend = if toEncode then galaxyBody else T.pack requestText
+    DTI.putStrLn $ "Performing request: " <> bodyToSend
     req <- parseRequest "POST https://boundvariable.space/communicate"
     let bearerHeader = T.concat ["Bearer ", token]
 
