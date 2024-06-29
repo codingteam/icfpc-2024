@@ -12,6 +12,7 @@ import Strings
 import Parser
 import AST
 import Printer
+import Lambdaman
 
 printHelp :: IO ()
 printHelp = putStrLn "Possible args:\n - http <request>\n- http-all"
@@ -51,6 +52,13 @@ main = do
                 case evalAst program of
                     Left err -> TIO.putStrLn $ "Cannot evaluate: " <> err
                     Right result -> pPrint result
+
+    ["lambdaman", path] -> do
+        problem <- problemFromFile path
+        Just sol <- evalAStar problem
+        print sol
+        let p' = evalPath problem sol
+        putStr $ showProblem p'
 
     ["http", request] -> performRequest request
     ["http-raw", request] -> performRequest' False request
