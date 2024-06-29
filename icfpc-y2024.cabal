@@ -110,6 +110,7 @@ test-suite icfpc-y2024-test
     , http-conduit
     , icfpc-y2024
     , megaparsec >=9.5.0
+    , mtl
     , pqueue
     , pretty-simple
     , tasty

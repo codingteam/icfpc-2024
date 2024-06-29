@@ -76,6 +76,7 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - icfpc-y2024
+    - mtl
     - tasty
     - tasty-hunit
     - tasty-quickcheck

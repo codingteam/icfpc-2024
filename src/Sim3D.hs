@@ -1,10 +1,11 @@
-module Sim3D (simulate, simulateStep, parseBoard) where
+module Sim3D (simulate, simulateStep, parseBoard, Board, stateFromBoard, Sim3dState(..)) where
 
 import qualified Data.Char as C
 import qualified Data.Vector as V
 import qualified Data.Text as DT
 import qualified Data.Text.IO as DTI
 import qualified Data.Map as M
+import Control.Monad.State
 
 data Cell =
       Empty
@@ -126,7 +127,8 @@ simulate :: String -> Inputs -> IO ()
 simulate boardPath inputs = do
     board <- readBoard boardPath
     let board' = replaceInputs board inputs
-        isAlreadyOver = isGameOver board'
+        state = stateFromBoard board'
+        isAlreadyOver = evalState isGameOver state
     if isAlreadyOver then do
         putStrLn "I cannot see the goal on the initial board. This game will never end."
         doSimulation board' False
@@ -136,45 +138,82 @@ simulate boardPath inputs = do
 doSimulation :: Board -> Bool -> IO ()
 doSimulation board checkGameOver = do
     printBoard board
-    if checkGameOver && isGameOver board then
+    let state = stateFromBoard board
+    let gameOver = evalState isGameOver state
+    if checkGameOver && gameOver then
         putStrLn "Game over!"
     else do
         putStrLn "Press enter to continue."
         _ <- getLine
-        doSimulation (simulateStep board) checkGameOver
+        let newBoard = s3dsCurBoard $ execState simulateStep state
+        doSimulation newBoard checkGameOver
 
-isGameOver :: Board -> Bool
-isGameOver board = True
+data Sim3dState = Sim3dState {
+    s3dsCurBoard :: Board --- ^ Current state of the board (read-only)
+,   s3dsNextBoard :: Board --- ^ Next state of the board (we're updating it)
+}
 
-simulateStep :: Board -> Board
-simulateStep board =
-    let effects = produceUpdates board in
-    normalize $ applyUpdates board effects
+stateFromBoard :: Board -> Sim3dState
+stateFromBoard board =
+    Sim3dState {
+        s3dsCurBoard = board
+    ,   s3dsNextBoard = board
+    }
+
+type Sim3dM a = State Sim3dState a
+
+isGameOver :: Sim3dM Bool
+isGameOver = pure True
+
+simulateStep :: Sim3dM ()
+simulateStep = do
+    board <- gets s3dsCurBoard
+    updateCells
+    moveNextToCurrent
 
 type Update = (Integer, Integer, Cell)
 
-produceCellUpdate ::  Board -> (Integer, Integer) -> [Update]
-produceCellUpdate board (x, y) =
-    let cell = getCell board (x, y) in
+readAt :: (Integer, Integer) -> Sim3dM Cell
+readAt pos = do
+    board <- gets s3dsCurBoard
+    pure $ getCell board pos
+
+writeTo :: (Integer, Integer) -> Cell -> Sim3dM ()
+writeTo pos value = do
+    let update = M.singleton pos value
+    board <- gets s3dsNextBoard
+    let newCells = M.union update (cells board)
+    let newBoard = board { cells = newCells }
+    modify' $ \s -> s { s3dsNextBoard = newBoard }
+
+moveCell :: (Integer, Integer) -> (Integer, Integer) -> Sim3dM ()
+moveCell from to = do
+    cell <- readAt from
+    writeTo to cell
+    writeTo from Empty
+
+moveNextToCurrent :: Sim3dM ()
+moveNextToCurrent = do
+    nextBoard <- gets s3dsNextBoard
+    let normalized = normalize nextBoard
+    modify $ \s -> s { s3dsCurBoard = normalized, s3dsNextBoard = normalized }
+
+updateCells :: Sim3dM ()
+updateCells = do
+    board <- gets s3dsCurBoard
+    mapM_ updateCell (M.keys $ cells board)
+
+updateCell :: (Integer, Integer) -> Sim3dM ()
+updateCell pos@(x, y) = do
+    cell <- readAt pos
     case cell of
-        MoveLeft -> moveCell (x + 1, y) (x - 1, y) board
-        MoveRight -> moveCell (x - 1, y) (x + 1, y) board
-        MoveUp -> moveCell (x, y + 1) (x, y - 1) board
-        MoveDown -> moveCell (x, y - 1) (x, y + 1) board
-        Value _ -> []
-        Empty -> []
-        _ -> [] -- TODO: implement actions for the other cells
-
-    where moveCell (x1, y1) (x2, y2) board = [(x1, y1, Empty), (x2, y2, getCell board (x1, y1))]
-
-produceUpdates :: Board -> [Update]
-produceUpdates board = concatMap (produceCellUpdate board) $ M.keys $ cells board
-
-applyUpdates :: Board -> [Update] -> Board
-applyUpdates board updates =
-    let updateMap = M.fromList $ map (\(x, y, cell) -> ((x, y), cell)) updates
-        newCells = M.union updateMap $ cells board in
-    board { cells = newCells }
+        MoveLeft -> moveCell (x + 1, y) (x - 1, y)
+        MoveRight -> moveCell (x - 1, y) (x + 1, y)
+        MoveUp -> moveCell (x, y + 1) (x, y - 1)
+        MoveDown -> moveCell (x, y - 1) (x, y + 1)
+        Value _ -> pure ()
+        Empty -> pure ()
+        _ -> pure () -- TODO: implement actions for the other cells
 
 -- Brings the whole board back into coordinate (0, 0), clean up Empty cells
 normalize :: Board -> Board
