@@ -21,13 +21,13 @@ The following levels are available:
 * [spaceship12] Best score: 8192.
 * [spaceship13] Best score: 23791.
 * [spaceship14] Your score: 3510. Best score: 137.
-* [spaceship15] Your score: 171. Best score: 39.
-* [spaceship16] Your score: 31433. Best score: 1572.
-* [spaceship17] Your score: 7415. Best score: 440.
+* [spaceship15] Your score: 139. Best score: 39.
+* [spaceship16] Your score: 13420. Best score: 1572.
+* [spaceship17] Your score: 3203. Best score: 440.
 * [spaceship18] Your score: 145417. Best score: 1959.
-* [spaceship19] Your score: 163306. Best score: 12746.
-* [spaceship20] Your score: 271160. Best score: 2394.
-* [spaceship21] Your score: 288630. Best score: 2437.
+* [spaceship19] Your score: 79243. Best score: 12746.
+* [spaceship20] Your score: 84779. Best score: 2394.
+* [spaceship21] Your score: 89112. Best score: 2437.
 * [spaceship22] Your score: 32497. Best score: 1269.
 * [spaceship23] Best score: 168502.
 * [spaceship24] Best score: 630010.
