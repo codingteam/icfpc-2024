@@ -63,8 +63,6 @@ main = do
         problem <- problemFromFile path
         Just sol <- evalAStar problem
         print sol
-        let p' = evalPath problem sol
-        putStr $ showProblem p'
 
     ["http-eval-galaxy", path] -> do
         txt <- TIO.readFile path
