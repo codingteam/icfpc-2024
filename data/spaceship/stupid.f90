@@ -1,5 +1,6 @@
 module space_m
   implicit none
+  integer, allocatable :: triangle_numbers(:)
   type :: ship_t
     integer :: x = 0
     integer :: y = 0
@@ -118,6 +119,14 @@ contains
       end if
     end subroutine walk_y
   end function walk
+  subroutine init_space_m()
+    integer, parameter :: tr_max = 1000
+    integer :: i
+    allocate(triangle_numbers(0:tr_max), source = 0)
+    do i = 0, tr_max
+      triangle_numbers(i) = i * (i + 1) / 2
+    end do
+  end subroutine init_space_m
 end module space_m
 
 program main
@@ -128,7 +137,9 @@ program main
   type(ship_t) :: ship
   integer(1), allocatable :: steps(:)
   integer :: nsteps, task_id, i
+  call init_space_m()
   allocate(steps(-1:max_steps), source = 0_1)
+  print *, triangle_numbers
   read(*,*) task_id
   stars = load_stars(task_id)
   nsteps = walk(ship, stars, steps) - 1
