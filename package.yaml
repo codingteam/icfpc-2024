@@ -23,11 +23,13 @@ dependencies:
 - bytestring
 - text >= 2.0.2
 - containers >= 0.6
+- unordered-containers
 - http-conduit
 - megaparsec >= 9.5.0
 - pretty-simple
 - array
 - hashable
+- pqueue
 
 ghc-options:
 - -Wall
