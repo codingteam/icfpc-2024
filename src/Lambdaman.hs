@@ -164,8 +164,6 @@ singletonPath p = Path {ptOriginal = p, ptSteps = []}
 extractPath :: Path -> Problem
 extractPath path = evalPath path
 
-type StGrid s = ST.STUArray s Position Cell
-
 type Mark = Word16
 
 unchecked :: Mark
@@ -279,9 +277,11 @@ aStar p = do
 evalAStar :: Problem -> IO (Maybe Path)
 evalAStar p = evalStateT (aStar p) emptyAState
 
+{-
 chunksOf :: Int -> [a] -> [[a]]
 chunksOf _ [] = []
 chunksOf n lst = take n lst : chunksOf n (drop n lst)
+-}
 
 decodeProblem :: [String] -> Problem
 decodeProblem lines =
@@ -304,6 +304,7 @@ decodeProblem lines =
         nPills = calcNPills grid
     in  Problem grid origin origin nPills
 
+{-
 showProblem :: Problem -> String
 showProblem p =
     let textGrid :: U.UArray Position Char
@@ -314,8 +315,9 @@ showProblem p =
         showCell 2 = '#'
         showCell 1 = '.'
         textGrid' = textGrid // [(pPosition p, 'L'), (pOrigin p, 'o')]
-        (_, (maxY, maxX)) = U.bounds (pGrid p)
+        (_, (_maxY, maxX)) = U.bounds (pGrid p)
     in  unlines $ chunksOf (maxX+1) $ U.elems textGrid'
+-}
 
 problemFromFile :: FilePath -> IO Problem
 problemFromFile path = do
