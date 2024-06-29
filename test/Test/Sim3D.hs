@@ -20,21 +20,21 @@ basicCellPreservationTests :: TestTree
 basicCellPreservationTests = testGroup "Sim3D.basicCellPreservation"
     [
         testCase "Empty cell row" $ simulateStep (parseBoard ". . . . .") @?= parseBoard ". . . . ."
-    ,   testCase "Empty cell column" $ simulateStep (parseBoard ".\n.\n.\n.\n.") @?= parseBoard ".\n.\n.\n.\n."  
-    ,   testCase "Just numbers" $ simulateStep (parseBoard "1 2 3 4 5") @?= parseBoard "1 2 3 4 5"  
+    ,   testCase "Empty cell column" $ simulateStep (parseBoard ".\n.\n.\n.\n.") @?= parseBoard ".\n.\n.\n.\n."
+    ,   testCase "Just numbers" $ simulateStep (parseBoard "1 2 3 4 5") @?= parseBoard "1 2 3 4 5"
     ]
 
 shiftTests :: TestTree
 shiftTests = testGroup "Sim3D.shift"
     [
         testCase "Left" $ simulateStep (parseBoard "1 < 2") @?= parseBoard "2 < ."
-    ,   testCase "Right" $ simulateStep (parseBoard "1 > 2") @?= parseBoard ". > 1"  
-    ,   testCase "Up" $ simulateStep (parseBoard "1\n^\n2") @?= parseBoard "1\n^\n."
-    ,   testCase "Down" $ simulateStep (parseBoard "1\nv\n2") @?= parseBoard ".\nv\n2"
+    ,   testCase "Right" $ simulateStep (parseBoard "1 > 2") @?= parseBoard ". > 1"
+    ,   testCase "Up" $ simulateStep (parseBoard "1\n^\n2") @?= parseBoard "2\n^\n."
+    ,   testCase "Down" $ simulateStep (parseBoard "1\nv\n2") @?= parseBoard ".\nv\n1"
     ,   testCase "Operator shift" $ simulateStep (parseBoard "+ < -") @?= parseBoard "- < ."
     ,   testCase "Simultaneous action" $ simulateStep (parseBoard "1 < 2 > 1") @?= parseBoard "2 < . > 2"
     ]
-    
+
 arithmeticTests :: TestTree
 arithmeticTests = testGroup "Sim3D.arithmetic"
     [

@@ -140,8 +140,8 @@ produceCellUpdate (x, y) board =
     case cell of
         MoveLeft -> moveCell (x + 1, y) (x - 1, y) board
         MoveRight -> moveCell (x - 1, y) (x + 1, y) board
-        MoveUp -> moveCell (x, y - 1) (x, y + 1) board
-        MoveDown -> moveCell (x, y + 1) (x, y - 1) board
+        MoveUp -> moveCell (x, y + 1) (x, y - 1) board
+        MoveDown -> moveCell (x, y - 1) (x, y + 1) board
         Value _ -> []
         Empty -> []
         _ -> error $ "Unexpected cell: " ++ show cell ++ " at " ++ show (x, y) ++ " in " ++ show board ++ "."
