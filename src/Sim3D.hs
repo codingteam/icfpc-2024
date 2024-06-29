@@ -33,7 +33,7 @@ isNumber :: DT.Text -> Bool
 isNumber text =
     case DT.unpack text of
         [] -> False
-        ('-':digits) -> all C.isDigit digits
+        ('-':d:igits) -> all C.isDigit (d:igits)
         digits -> all C.isDigit digits
 
 readCell :: DT.Text -> Cell
