@@ -136,15 +136,15 @@ produceCellUpdate :: (Int, Int) -> Board -> [(Int, Int, Cell)]
 produceCellUpdate (x, y) board =
     let cell = (board V.! y) V.! x in
     case cell of
-        MoveLeft -> moveCell (x - 1, y) (x + 1, y) board
-        MoveRight -> moveCell (x + 1, y) (x - 1, y) board 
+        MoveLeft -> moveCell (x + 1, y) (x - 1, y) board
+        MoveRight -> moveCell (x - 1, y) (x + 1, y) board 
         MoveUp -> moveCell (x, y - 1) (x, y + 1) board 
         MoveDown -> moveCell (x, y + 1) (x, y - 1) board
         Value _ -> []
         Empty -> [] 
         _ -> error $ "Unexpected cell: " ++ show cell ++ " at " ++ show (x, y) ++ " in " ++ show board ++ "."
 
-    where moveCell (x1, y1) (x2, y2) board = [(x1, y1, Empty), (x2, y2, (board V.! y) V.! x)]
+    where moveCell (x1, y1) (x2, y2) board = [(x1, y1, Empty), (x2, y2, (board V.! y1) V.! x1)]
 
 produceUpdates :: Board -> [Update]
 produceUpdates board =
