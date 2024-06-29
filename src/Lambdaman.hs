@@ -50,7 +50,7 @@ type Value = Int
 
 data Path = Path {
       ptSteps :: ![Direction]
-    , ptState :: Problem
+    , ptOriginal :: Problem
     }
 
 instance Show Path where
@@ -113,6 +113,9 @@ evalStep step p =
         Just 1 -> p {pGrid = pGrid p // [(pos', emptyCell)], pPosition = pos', pNPills = pNPills p - 1}
         Just 0 -> p {pGrid = pGrid p // [(pos', emptyCell)], pPosition = pos'}
 
+evalPath :: Path -> Problem
+evalPath path = foldr evalStep (ptOriginal path) (ptSteps path)
+
 isGoal :: Grid -> Bool
 isGoal g = not $ any (== pillCell) $ U.elems g
 
@@ -133,17 +136,17 @@ calcPriority' :: Path -> (Value, Value)
 calcPriority' path = (originToCurrent, currentToGoal)
     where
         originToCurrent = length $ ptSteps path
-        currentToGoal = pNPills $ ptState path
+        currentToGoal = pNPills $ evalPath path
 
 appendPath :: Direction -> Problem -> Path -> Path
 appendPath step p path =
-    path {ptState = p, ptSteps = step : ptSteps path}
+    path {ptSteps = step : ptSteps path}
 
 singletonPath :: Problem -> Path
-singletonPath p = Path {ptState = p, ptSteps = []}
+singletonPath p = Path {ptOriginal = p, ptSteps = []}
 
 extractPath :: Path -> Problem
-extractPath path = ptState path
+extractPath path = evalPath path
 
 aStar :: Problem -> A (Maybe Path)
 aStar p = do
