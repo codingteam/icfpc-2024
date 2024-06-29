@@ -11,6 +11,7 @@ sim3DTests = testGroup "Sim3D"
     [
         basicCellPreservationTests
     ,   shiftTests
+    ,   autoExpandTests
     ,   arithmeticTests
     ,   comparisonTests
     ,   crashTests
@@ -22,6 +23,13 @@ basicCellPreservationTests = testGroup "Sim3D.basicCellPreservation"
         testCase "Empty cell row" $ simulateStep (parseBoard ". . . . .") @?= parseBoard ". . . . ."
     ,   testCase "Empty cell column" $ simulateStep (parseBoard ".\n.\n.\n.\n.") @?= parseBoard ".\n.\n.\n.\n."
     ,   testCase "Just numbers" $ simulateStep (parseBoard "1 2 3 4 5") @?= parseBoard "1 2 3 4 5"
+    ]
+
+autoExpandTests :: TestTree
+autoExpandTests = testGroup "Sim3D.autoExpand"
+    [
+        testCase "Horizontal" $ simulateStep (parseBoard "< 1 >") @?= parseBoard "1 < . > 1"
+    ,   testCase "Vertical" $ simulateStep (parseBoard "^\n1\nv") @?= parseBoard "1\n^\n.\nv\n1"
     ]
 
 shiftTests :: TestTree

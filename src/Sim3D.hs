@@ -4,6 +4,7 @@ import qualified Data.Char as C
 import qualified Data.Vector as V
 import qualified Data.Text as DT
 import qualified Data.Text.IO as DTI
+import qualified Data.Map as M
 
 data Cell =
       Empty
@@ -25,9 +26,14 @@ data Cell =
     | InputB
     deriving (Eq, Show)
 
--- Row-major order: outer vector is indexed by rows, inner vector is indexed by
--- column
-type Board = V.Vector (V.Vector Cell)
+data Board = Board {
+    cells :: M.Map (Integer, Integer) Cell,
+    minCoords :: (Integer, Integer),
+    maxCoords :: (Integer, Integer)
+} deriving (Eq, Show)
+
+getCell :: Board -> (Integer, Integer) -> Cell
+getCell board coords = M.findWithDefault Empty coords $ cells board
 
 isNumber :: DT.Text -> Bool
 isNumber text =
@@ -55,11 +61,25 @@ readCell "S" = OutputS
 readCell "A" = InputA
 readCell "B" = InputB
 
+boardFromList :: [[Cell]] -> Board
+boardFromList cells =
+    let indexedCells = concat $ zipWith (\y row -> zipWith (\x cell -> ((x, y), cell)) [0..] row) [0..] cells
+        minX = minimum $ map (fst . fst) indexedCells
+        minY = minimum $ map (snd . fst) indexedCells
+        maxX = maximum $ map (fst . fst) indexedCells
+        maxY = maximum $ map (snd . fst) indexedCells in
+    Board (M.fromList indexedCells) (minX, minY) (maxX, maxY)
+
+boardToList :: Board -> [[Cell]]
+boardToList board =
+    let ((minX, minY), (maxX, maxY)) = (minCoords board, maxCoords board) in
+    map (\y -> map (\x -> M.findWithDefault Empty (x, y) $ cells board) [minX..maxX]) [minY..maxY]
+
 parseBoard :: DT.Text -> Board
 parseBoard contents =
     let textRows = DT.lines contents
         textCells = map DT.words textRows in
-    V.fromList $ map (V.fromList . map readCell) textCells
+    normalize $ boardFromList $ map (map readCell) textCells
 
 readBoard :: String -> IO Board
 readBoard path = do
@@ -73,8 +93,7 @@ replaceInputs board (a, b) =
     let replaceCell InputA = Value a
         replaceCell InputB = Value b
         replaceCell cell = cell
-        replaceRow row = V.map replaceCell row
-    in V.map replaceRow board
+    in board { cells = M.map replaceCell $ cells board }
 
 printBoard :: Board -> IO ()
 printBoard board = do
@@ -96,12 +115,12 @@ printBoard board = do
         printCell InputA = putStr "A"
         printCell InputB = putStr "B"
         printRow row = do
-            V.mapM_ (\x -> do
+            mapM_ (\x -> do
                 printCell x
                 putStr " ") row
 
             putStrLn ""
-    V.mapM_ printRow board
+    mapM_ printRow $ boardToList board
 
 simulate :: String -> Inputs -> IO ()
 simulate boardPath inputs = do
@@ -130,13 +149,13 @@ isGameOver board = True
 simulateStep :: Board -> Board
 simulateStep board =
     let effects = produceUpdates board in
-    applyUpdates board effects
+    normalize $ applyUpdates board effects
 
-type Update = (Int, Int, Cell)
+type Update = (Integer, Integer, Cell)
 
-produceCellUpdate :: (Int, Int) -> Board -> [(Int, Int, Cell)]
-produceCellUpdate (x, y) board =
-    let cell = (board V.! y) V.! x in
+produceCellUpdate ::  Board -> (Integer, Integer) -> [Update]
+produceCellUpdate board (x, y) =
+    let cell = getCell board (x, y) in
     case cell of
         MoveLeft -> moveCell (x + 1, y) (x - 1, y) board
         MoveRight -> moveCell (x - 1, y) (x + 1, y) board
@@ -146,18 +165,29 @@ produceCellUpdate (x, y) board =
         Empty -> []
         _ -> [] -- TODO: implement actions for the other cells
 
-    where moveCell (x1, y1) (x2, y2) board = [(x1, y1, Empty), (x2, y2, (board V.! y1) V.! x1)]
+    where moveCell (x1, y1) (x2, y2) board = [(x1, y1, Empty), (x2, y2, getCell board (x1, y1))]
 
 produceUpdates :: Board -> [Update]
-produceUpdates board =
-    V.toList $
-        V.concatMap id $ V.imap (\r row ->
-            V.concatMap id $ V.imap (\c _ -> (V.fromList $ produceCellUpdate (c, r) board)) row) board
+produceUpdates board = concatMap (produceCellUpdate board) $ M.keys $ cells board
 
 applyUpdates :: Board -> [Update] -> Board
-applyUpdates board [] = board
-applyUpdates board ((x, y, cell):updates) =
-    let row = board V.! y
-        newRow = row V.// [(x, cell)]
-        newBoard = board V.// [(y, newRow)] in
-    applyUpdates newBoard updates
+applyUpdates board updates =
+    let updateMap = M.fromList $ map (\(x, y, cell) -> ((x, y), cell)) updates
+        newCells = M.union updateMap $ cells board in
+    board { cells = newCells }      
+
+-- Brings the whole board back into coordinate (0, 0), clean up Empty cells
+normalize :: Board -> Board
+normalize board =
+    let filteredCells = M.filter (/= Empty) $ cells board
+        minX = minimum $ map fst $ M.keys filteredCells
+        minY = minimum $ map snd $ M.keys filteredCells 
+        maxX = maximum $ map fst $ M.keys filteredCells
+        maxY = maximum $ map snd $ M.keys filteredCells
+        shiftX = -minX
+        shiftY = -minY
+        newCells = M.mapKeys (\(x, y) -> (x + shiftX, y + shiftY)) filteredCells
+        newMin = (0, 0)
+        newMax = (maxX + shiftX, maxY + shiftY) in
+    board { cells = newCells, minCoords = newMin, maxCoords = newMax }
+    
