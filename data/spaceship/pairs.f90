@@ -78,17 +78,21 @@ program main
   end do
 contains
   function load_stars(task_id) result(stars)
+!    integer, parameter :: N_size(25) = &
+!      (/ 5, 50, 10, 100, 116, 85, 50, 50, 100, 100, &
+!         8192, 8192, 8192, 100, 19, 497, 100, 100, &
+!         8832, 900, 900, 300, 40000, 4096, 65530 /)
     integer, parameter :: N_size(25) = &
-      (/ 5, 50, 10, 100, 116, 85, 50, 50, 100, 100, &
-         8192, 8192, 8192, 100, 19, 497, 100, 100, &
-         8832, 900, 900, 300, 40000, 4096, 65530 /)
+      (/ 5, 49, 10, 99, 113, 85, 49, 50, 99, 100, &
+        8192, 8192, 8192, 100, 19, 497, 100, 100, &
+        8832, 900, 900, 299, 39996, 4096, 65530 /)
     integer, intent(in) :: task_id
     type(star_t), allocatable :: stars(:)
     character(len=2) :: task_id_chr
     integer :: fd, i
 
     write(task_id_chr, "(I2)") task_id
-    open(newunit=fd, file = "spaceship" // trim(adjustl(task_id_chr)) // ".txt", &
+    open(newunit=fd, file = "spaceship" // trim(adjustl(task_id_chr)) // ".txt_uniq", &
          form="formatted", status="old")
     allocate(stars(N_size(task_id)))
     do i = 1, N_size(task_id)
