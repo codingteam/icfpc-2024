@@ -180,10 +180,10 @@ applyUpdates board updates =
 normalize :: Board -> Board
 normalize board =
     let filteredCells = M.filter (/= Empty) $ cells board
-        minX = minimum $ map fst $ M.keys filteredCells
-        minY = minimum $ map snd $ M.keys filteredCells 
-        maxX = maximum $ map fst $ M.keys filteredCells
-        maxY = maximum $ map snd $ M.keys filteredCells
+        minX = if null filteredCells then 0 else minimum $ map fst $ M.keys filteredCells
+        minY = if null filteredCells then 0 else minimum $ map snd $ M.keys filteredCells 
+        maxX = if null filteredCells then 0 else maximum $ map fst $ M.keys filteredCells
+        maxY = if null filteredCells then 0 else maximum $ map snd $ M.keys filteredCells
         shiftX = -minX
         shiftY = -minY
         newCells = M.mapKeys (\(x, y) -> (x + shiftX, y + shiftY)) filteredCells
