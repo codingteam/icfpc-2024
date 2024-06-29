@@ -4,6 +4,7 @@ module Lambdaman where
 
 import Control.Monad
 import Control.Monad.State
+import Data.Array.Unboxed as U
 import Data.Array.IArray as A
 import GHC.Generics
 import Data.Hashable
@@ -11,17 +12,24 @@ import Data.Maybe
 import Data.List (findIndex, elemIndex)
 import qualified Data.HashSet as H
 import qualified Data.PQueue.Prio.Min as Q
+import Data.Word
 
-data Cell = Empty | Pill | Wall
-    deriving (Eq, Show, Generic)
+-- Empty = 0
+-- Pill = 1
+-- Wall = 2
+type Cell = Word8
 
-instance Hashable Cell
+emptyCell = 0
+pillCell = 1
+wallCell = 2
+
+-- instance Hashable Cell
 
 data Direction = U | R | D | L
     deriving (Eq, Show)
 
 type Position = (Int, Int)
-type Grid = Array Position Cell
+type Grid = UArray Position Cell
 
 data Problem = Problem {
     pGrid :: Grid
@@ -31,8 +39,8 @@ data Problem = Problem {
   }
   deriving (Eq, Show, Generic)
 
-instance Hashable (Array (Int,Int) Cell) where
-    hashWithSalt salt a = foldr (flip hashWithSalt) salt $ map fst $ filter (\(_i, e) -> e == Pill) $ A.assocs a
+instance Hashable (UArray (Int,Int) Cell) where
+    hashWithSalt salt a = foldr (flip hashWithSalt) salt $ map fst $ filter (\(_i, e) -> e == pillCell) $ U.assocs a
 
 instance Hashable Problem where
     hashWithSalt salt p =
@@ -101,12 +109,12 @@ evalStep step p =
     let pos' = calcStep step (pPosition p)
     in case pGrid p !? pos' of
         Nothing -> p
-        Just Wall -> p
-        Just Pill -> p {pGrid = pGrid p // [(pos', Empty)], pPosition = pos', pNPills = pNPills p - 1}
-        Just Empty -> p {pGrid = pGrid p // [(pos', Empty)], pPosition = pos'}
+        Just 2 -> p
+        Just 1 -> p {pGrid = pGrid p // [(pos', emptyCell)], pPosition = pos', pNPills = pNPills p - 1}
+        Just 0 -> p {pGrid = pGrid p // [(pos', emptyCell)], pPosition = pos'}
 
 isGoal :: Grid -> Bool
-isGoal g = not $ any (== Pill) $ A.elems g
+isGoal g = not $ any (== pillCell) $ U.elems g
 
 successors :: Problem -> [(Direction, Problem)]
 successors p = mapMaybe check [U, R, D, L]
@@ -114,12 +122,12 @@ successors p = mapMaybe check [U, R, D, L]
         check step =
             let pos' = calcStep step (pPosition p)
             in  case pGrid p !? pos' of
-                    Just Pill -> Just (step, evalStep step $! p)
-                    Just Empty -> Just (step, evalStep step $! p)
+                    Just 1 -> Just (step, evalStep step $! p)
+                    Just 0 -> Just (step, evalStep step $! p)
                     _ -> Nothing
 
 calcNPills :: Grid -> Value
-calcNPills grid = length $ filter (== Pill) $ A.elems grid
+calcNPills grid = length $ filter (== pillCell) $ U.elems grid
 
 calcPriority' :: Path -> (Value, Value)
 calcPriority' path = (originToCurrent, currentToGoal)
@@ -163,7 +171,7 @@ aStar p = do
                                forM_ (successors grid) $ \(step, y) -> do
                                  let path' = appendPath step y path
                                  let (priority1, priority2) = calcPriority' path'
-                                 -- liftIO $ putStrLn $ "Check: " ++ show path'
+                                 -- liftIO $ putStrLn $ "Check: " ++ show path' ++ ": " ++ show (pPosition grid) ++ " -> " ++ show (pPosition $ extractPath path')
                                  -- liftIO $ putStr $ showProblem $ ptState path'
                                  -- liftIO $ putStrLn $ "Priority: " ++ show (priority1, priority2)
                                  let priority = priority1 + priority2
@@ -184,29 +192,32 @@ decodeProblem lines =
         sizeY = length lines
         sizeX = length (head lines)
 
-        decodeChar ' ' = Empty
-        decodeChar 'L' = Empty
-        decodeChar '#' = Wall
-        decodeChar '.' = Pill
+        decodeChar ' ' = emptyCell
+        decodeChar 'L' = emptyCell
+        decodeChar '#' = wallCell
+        decodeChar '.' = pillCell
 
         lines' = concatMap (map decodeChar) lines
         indices :: [Position]
         indices = [(y, x) | y <- [0..sizeY-1], x <- [0..sizeX-1]]
         grid :: Grid
-        grid = A.array ((0,0), (sizeY-1, sizeX-1)) $ zip indices lines'
+        grid = U.array ((0,0), (sizeY-1, sizeX-1)) $ zip indices lines'
         origin = (originY, originX)
         nPills = calcNPills grid
     in  Problem grid origin origin nPills
 
 showProblem :: Problem -> String
 showProblem p =
-    let textGrid = fmap showCell (pGrid p)
-        showCell Empty = ' '
-        showCell Wall = '#'
-        showCell Pill = '.'
+    let textGrid :: U.UArray Position Char
+        textGrid =
+            let idxs = U.indices (pGrid p)
+            in U.array (A.bounds (pGrid p)) [(i, showCell (pGrid p U.! i)) | i <- idxs]
+        showCell 0 = ' '
+        showCell 2 = '#'
+        showCell 1 = '.'
         textGrid' = textGrid // [(pPosition p, 'L'), (pOrigin p, 'o')]
-        (_, (maxY, maxX)) = A.bounds (pGrid p)
-    in  unlines $ chunksOf (maxX+1) $ A.elems textGrid'
+        (_, (maxY, maxX)) = U.bounds (pGrid p)
+    in  unlines $ chunksOf (maxX+1) $ U.elems textGrid'
 
 problemFromFile :: FilePath -> IO Problem
 problemFromFile path = do
