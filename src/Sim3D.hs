@@ -144,7 +144,7 @@ produceCellUpdate (x, y) board =
         MoveDown -> moveCell (x, y - 1) (x, y + 1) board
         Value _ -> []
         Empty -> []
-        _ -> error $ "Unexpected cell: " ++ show cell ++ " at " ++ show (x, y) ++ " in " ++ show board ++ "."
+        _ -> [] -- TODO: implement actions for the other cells
 
     where moveCell (x1, y1) (x2, y2) board = [(x1, y1, Empty), (x2, y2, (board V.! y1) V.! x1)]
 
