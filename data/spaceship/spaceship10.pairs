@@ -1,0 +1,142 @@
+Star 1 is unreachable!
+Star 2 is unreachable!
+Star 3 is unreachable!
+Star 4 is unreachable!
+Star 5 is unreachable!
+Star 6 is unreachable!
+Star 7 is unreachable!
+Star 8 is unreachable!
+Star 9 is unreachable!
+7 - 10 : 10 - 16
+16 - 10 : 10 - 7
+7 - 11 : 11 - 23
+23 - 11 : 11 - 7
+8 - 11 : 11 - 19
+19 - 11 : 11 - 8
+10 - 11 : 11 - 13
+13 - 11 : 11 - 10
+Star 12 is unreachable!
+11 - 13 : 13 - 15
+15 - 13 : 13 - 11
+11 - 14 : 14 - 19
+19 - 14 : 14 - 11
+13 - 14 : 14 - 16
+16 - 14 : 14 - 13
+Star 15 is unreachable!
+13 - 16 : 16 - 22
+22 - 16 : 16 - 13
+16 - 17 : 17 - 21
+21 - 17 : 17 - 16
+Star 18 is unreachable!
+Star 19 is unreachable!
+17 - 20 : 20 - 21
+21 - 20 : 20 - 17
+17 - 21 : 21 - 25
+25 - 21 : 21 - 17
+Star 22 is unreachable!
+Star 23 is unreachable!
+Star 24 is unreachable!
+Star 25 is unreachable!
+2 - 26 : 26 - 35
+35 - 26 : 26 - 2
+Star 27 is unreachable!
+Star 28 is unreachable!
+Star 29 is unreachable!
+Star 30 is unreachable!
+Star 31 is unreachable!
+Star 32 is unreachable!
+Star 33 is unreachable!
+Star 34 is unreachable!
+33 - 35 : 35 - 38
+38 - 35 : 35 - 33
+Star 36 is unreachable!
+Star 37 is unreachable!
+Star 38 is unreachable!
+Star 39 is unreachable!
+Star 40 is unreachable!
+Star 41 is unreachable!
+Star 42 is unreachable!
+Star 43 is unreachable!
+40 - 44 : 44 - 49
+49 - 44 : 44 - 40
+54 - 44 : 44 - 84
+84 - 44 : 44 - 54
+39 - 45 : 45 - 61
+61 - 45 : 45 - 39
+59 - 46 : 46 - 80
+80 - 46 : 46 - 59
+Star 47 is unreachable!
+Star 48 is unreachable!
+47 - 49 : 49 - 53
+53 - 49 : 49 - 47
+37 - 50 : 50 - 62
+62 - 50 : 50 - 37
+80 - 51 : 51 - 100
+100 - 51 : 51 - 80
+46 - 52 : 52 - 57
+57 - 52 : 52 - 46
+Star 53 is unreachable!
+53 - 54 : 54 - 55
+55 - 54 : 54 - 53
+Star 55 is unreachable!
+Star 56 is unreachable!
+73 - 57 : 57 - 89
+89 - 57 : 57 - 73
+Star 58 is unreachable!
+Star 59 is unreachable!
+Star 60 is unreachable!
+Star 61 is unreachable!
+Star 62 is unreachable!
+Star 63 is unreachable!
+Star 64 is unreachable!
+Star 65 is unreachable!
+65 - 66 : 66 - 68
+68 - 66 : 66 - 65
+Star 67 is unreachable!
+Star 68 is unreachable!
+68 - 69 : 69 - 70
+70 - 69 : 69 - 68
+66 - 70 : 70 - 74
+74 - 70 : 70 - 66
+Star 71 is unreachable!
+56 - 72 : 72 - 93
+93 - 72 : 72 - 56
+Star 73 is unreachable!
+63 - 74 : 74 - 85
+85 - 74 : 74 - 63
+71 - 75 : 75 - 79
+79 - 75 : 75 - 71
+16 - 76 : 76 - 55
+55 - 76 : 76 - 16
+40 - 77 : 77 - 80
+80 - 77 : 77 - 40
+75 - 78 : 78 - 81
+81 - 78 : 78 - 75
+Star 79 is unreachable!
+Star 80 is unreachable!
+78 - 81 : 81 - 83
+83 - 81 : 81 - 78
+Star 82 is unreachable!
+Star 83 is unreachable!
+Star 84 is unreachable!
+Star 85 is unreachable!
+Star 86 is unreachable!
+Star 87 is unreachable!
+80 - 88 : 88 - 89
+89 - 88 : 88 - 80
+Star 89 is unreachable!
+Star 90 is unreachable!
+23 - 91 : 91 - 76
+76 - 91 : 91 - 23
+90 - 91 : 91 - 92
+92 - 91 : 91 - 90
+15 - 92 : 92 - 79
+79 - 92 : 92 - 15
+Star 93 is unreachable!
+Star 94 is unreachable!
+Star 95 is unreachable!
+Star 96 is unreachable!
+Star 97 is unreachable!
+Star 98 is unreachable!
+Star 99 is unreachable!
+Star 100 is unreachable!

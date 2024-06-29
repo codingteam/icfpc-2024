@@ -1,0 +1,89 @@
+Star 1 is unreachable!
+7 - 2 : 2 - 14
+14 - 2 : 2 - 7
+9 - 3 : 3 - 14
+14 - 3 : 3 - 9
+1 - 4 : 4 - 11
+11 - 4 : 4 - 1
+Star 5 is unreachable!
+2 - 6 : 6 - 7
+7 - 6 : 6 - 2
+9 - 6 : 6 - 19
+19 - 6 : 6 - 9
+Star 7 is unreachable!
+Star 8 is unreachable!
+Star 9 is unreachable!
+Star 10 is unreachable!
+5 - 11 : 11 - 12
+12 - 11 : 11 - 5
+13 - 11 : 11 - 15
+15 - 11 : 11 - 13
+15 - 12 : 12 - 18
+18 - 12 : 12 - 15
+21 - 12 : 12 - 49
+49 - 12 : 12 - 21
+23 - 12 : 12 - 31
+31 - 12 : 12 - 23
+Star 13 is unreachable!
+Star 14 is unreachable!
+Star 15 is unreachable!
+13 - 16 : 16 - 18
+18 - 16 : 16 - 13
+15 - 17 : 17 - 19
+19 - 17 : 17 - 15
+Star 18 is unreachable!
+1 - 19 : 19 - 2
+2 - 19 : 19 - 1
+1 - 19 : 19 - 3
+3 - 19 : 19 - 1
+14 - 19 : 19 - 22
+22 - 19 : 19 - 14
+Star 20 is unreachable!
+Star 21 is unreachable!
+Star 22 is unreachable!
+Star 23 is unreachable!
+Star 24 is unreachable!
+24 - 25 : 25 - 26
+26 - 25 : 25 - 24
+Star 26 is unreachable!
+25 - 27 : 27 - 28
+28 - 27 : 27 - 25
+Star 28 is unreachable!
+Star 29 is unreachable!
+Star 30 is unreachable!
+33 - 31 : 31 - 49
+49 - 31 : 31 - 33
+34 - 32 : 32 - 40
+40 - 32 : 32 - 34
+Star 33 is unreachable!
+17 - 34 : 34 - 48
+48 - 34 : 34 - 17
+Star 35 is unreachable!
+33 - 36 : 36 - 38
+38 - 36 : 36 - 33
+35 - 37 : 37 - 40
+40 - 37 : 37 - 35
+Star 38 is unreachable!
+33 - 39 : 39 - 46
+46 - 39 : 39 - 33
+33 - 39 : 39 - 47
+47 - 39 : 39 - 33
+36 - 39 : 39 - 43
+43 - 39 : 39 - 36
+38 - 39 : 39 - 41
+41 - 39 : 39 - 38
+Star 40 is unreachable!
+Star 41 is unreachable!
+Star 42 is unreachable!
+41 - 43 : 43 - 47
+47 - 43 : 43 - 41
+42 - 44 : 44 - 47
+47 - 44 : 44 - 42
+44 - 45 : 45 - 46
+46 - 45 : 45 - 44
+Star 46 is unreachable!
+Star 47 is unreachable!
+6 - 48 : 48 - 38
+38 - 48 : 48 - 6
+30 - 49 : 49 - 31
+31 - 49 : 49 - 30
