@@ -75,8 +75,8 @@ main = do
         txt <- TIO.readFile path
         performRequest $ textToGalaxy $ "solve " <> (T.pack problem) <> " " <> txt
 
-    ["test", problem, path] -> do
+    ["test-3d", a, b, path] -> do
         txt <- TIO.readFile path
-        performRequest $ textToGalaxy $ "test " <> (T.pack problem) <> " " <> txt
+        performRequest $ textToGalaxy $ "test 3d " <> (T.pack a) <> " " <> (T.pack b) <> "\n" <> txt
 
     _ -> printHelp
