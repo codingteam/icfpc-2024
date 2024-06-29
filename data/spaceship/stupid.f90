@@ -223,7 +223,7 @@ program main
   stars = load_stars(task_id)
   nsteps = walk(ship, stars, steps) - 1
   do i = 1, nsteps
-    if (steps(i) /= 0) &
+!    if (steps(i) /= 0) &
       write(*, "(I0)", advance="no") steps(i)
   end do
 contains
