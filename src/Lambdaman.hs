@@ -42,7 +42,7 @@ type Value = Int
 
 data Path = Path {
       ptSteps :: ![Direction]
-    , ptState :: !Problem
+    , ptState :: Problem
     }
 
 instance Show Path where
@@ -75,7 +75,7 @@ memberPS :: Problem -> ProblemSet -> Bool
 -- memberPS = H.member
 
 memberPS p ps =
---    pNPills p `H.member` psNPills ps &&
+    pNPills p `H.member` psNPills ps &&
     pPosition p `H.member` psPositions ps &&
     (pPosition p, pGrid p) `H.member` psGrids ps
 
@@ -105,15 +105,6 @@ evalStep step p =
         Just Pill -> p {pGrid = pGrid p // [(pos', Empty)], pPosition = pos', pNPills = pNPills p - 1}
         Just Empty -> p {pGrid = pGrid p // [(pos', Empty)], pPosition = pos'}
 
-evalPath :: Problem -> Path -> Problem
-evalPath p path =
-    case ptSteps path of
-        [] -> p
-        (step : steps) ->
-            let p' = evalStep step p
-                path' = path {ptSteps = steps}
-            in  evalPath p' (appendPath step p' path')
-
 isGoal :: Grid -> Bool
 isGoal g = not $ any (== Pill) $ A.elems g
 
@@ -123,8 +114,8 @@ successors p = mapMaybe check [U, R, D, L]
         check step =
             let pos' = calcStep step (pPosition p)
             in  case pGrid p !? pos' of
-                    Just Pill -> Just (step, evalStep step p)
-                    Just Empty -> Just (step, evalStep step p)
+                    Just Pill -> Just (step, evalStep step $! p)
+                    Just Empty -> Just (step, evalStep step $! p)
                     _ -> Nothing
 
 calcNPills :: Grid -> Value
