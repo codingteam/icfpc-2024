@@ -24,22 +24,22 @@ The following levels are available:
 * [lambdaman3] Your score: 58. Best score: 58.
 * [lambdaman4] Your score: 414. Best score: 151.
 * [lambdaman5] Best score: 142.
-* [lambdaman6] Your score: 217. Best score: 73.
+* [lambdaman6] Your score: 129. Best score: 73.
 * [lambdaman7] Best score: 139.
 * [lambdaman8] Your score: 4917. Best score: 113.
-* [lambdaman9] Your score: 2617. Best score: 114.
-* [lambdaman10] Best score: 164.
-* [lambdaman11] Your score: 12093. Best score: 1524.
-* [lambdaman12] Your score: 12001. Best score: 1588.
-* [lambdaman13] Your score: 12281. Best score: 1578.
-* [lambdaman14] Your score: 12045. Best score: 1565.
-* [lambdaman15] Your score: 12321. Best score: 1581.
+* [lambdaman9] Your score: 2617. Best score: 110.
+* [lambdaman10] Best score: 143.
+* [lambdaman11] Your score: 12093. Best score: 1243.
+* [lambdaman12] Your score: 12001. Best score: 1243.
+* [lambdaman13] Your score: 12281. Best score: 1243.
+* [lambdaman14] Your score: 12045. Best score: 1242.
+* [lambdaman15] Your score: 12321. Best score: 1243.
 * [lambdaman16] Your score: 8209. Best score: 287.
 * [lambdaman17] Best score: 231.
 * [lambdaman18] Best score: 3521.
 * [lambdaman19] Your score: 16364. Best score: 1442.
 * [lambdaman20] Best score: 5264.
-* [lambdaman21] Best score: 9194.
+* [lambdaman21] Best score: 723.
 
 To submit a solution, send an ICFP expression that evaluates to:
 
