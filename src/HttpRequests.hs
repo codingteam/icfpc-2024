@@ -15,11 +15,8 @@ import Control.Monad (forM_)
 
 import Text.Pretty.Simple (pPrint)
 
-import Lib
-import Strings
 import Parser
 import AST
-import Printer
 
 performRequest :: T.Text -> IO ()
 performRequest bodyToSend = do
