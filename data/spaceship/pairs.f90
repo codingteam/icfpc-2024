@@ -11,6 +11,7 @@ contains
     ! integer
     integer :: i, j, dx1, dx2, dy1, dy2
     logical :: found
+    found = .false.
     do i = 1, size(stars)
       dx1 = stars(i)%x - ship%x
       dy1 = stars(i)%y - ship%y
