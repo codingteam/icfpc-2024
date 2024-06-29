@@ -15,6 +15,7 @@ import Parser
 import AST
 import Printer
 import StringBitCoding
+import Lambdaman
 
 printHelp :: IO ()
 printHelp = putStrLn "Possible args:\n - http <request>\n- http-all"
@@ -57,6 +58,14 @@ main = do
 
     ["http", request] -> performRequest $ textToGalaxy $ T.pack request
     ["http-raw", request] -> performRequest $ T.pack request
+
+    ["lambdaman", path] -> do
+        problem <- problemFromFile path
+        Just sol <- evalAStar problem
+        print sol
+        let p' = evalPath problem sol
+        putStr $ showProblem p'
+
     ["http-eval-galaxy", path] -> do
         txt <- TIO.readFile path
         case parseExpression txt of

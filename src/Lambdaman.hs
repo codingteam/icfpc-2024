@@ -43,7 +43,7 @@ data Path = Path {
     }
 
 instance Show Path where
-    show p = show (ptSteps p)
+    show p = concatMap show $ reverse $ ptSteps p
 
 data AState = AState {
       aOpen :: !(Q.MinPQueue Int Path)
@@ -53,7 +53,7 @@ data AState = AState {
 emptyAState :: AState
 emptyAState = AState Q.empty H.empty
 
-type A a = State AState a
+type A a = StateT AState IO a
 
 calcStep :: Direction -> Position -> Position
 calcStep U (y,x) = (y-1, x)
@@ -69,6 +69,15 @@ evalStep (step, p) =
         Just Wall -> p
         _ -> p {pGrid = pGrid p // [(pos', Empty)], pPosition = pos'}
 
+evalPath :: Problem -> Path -> Problem
+evalPath p path =
+    case ptSteps path of
+        [] -> p
+        (step : steps) ->
+            let p' = evalStep (step, p)
+                path' = path {ptSteps = steps}
+            in  evalPath p' (appendPath step p' path')
+
 isGoal :: Grid -> Bool
 isGoal g = not $ any (== Pill) $ A.elems g
 
@@ -79,10 +88,11 @@ successors p = mapMaybe check [U, R, D, L]
             let pos' = calcStep step (pPosition p)
             in  case pGrid p !? pos' of
                     Just Pill -> Just (step, evalStep (step, p))
+                    Just Empty -> Just (step, evalStep (step, p))
                     _ -> Nothing
 
-calcPriority :: Path -> Value
-calcPriority path = originToCurrent + currentToGoal
+calcPriority' :: Path -> (Value, Value)
+calcPriority' path = (originToCurrent, currentToGoal)
     where
         originToCurrent = length $ ptSteps path
         currentToGoal = length $ filter (== Pill) $ A.elems (pGrid $ ptState path)
@@ -108,19 +118,34 @@ aStar p = do
             case Q.minView open of
                 Nothing -> return Nothing
                 Just (path, rest) -> do
+                    -- liftIO $ putStrLn $ "From queue: " ++ show path
                     modify $ \st -> st {aOpen = rest}
                     let grid = extractPath path
                     closed <- gets aClosed
                     if grid `H.member` closed
-                      then loop
+                      then do
+                        -- liftIO $ putStrLn "we were here already, skip"
+                        loop
                       else if isGoal $ pGrid grid
                              then return $ Just path
                              else do
                                modify $ \st -> st {aClosed = H.insert grid (aClosed st)}
                                forM_ (successors grid) $ \(step, y) -> do
                                  let path' = appendPath step y path
-                                 modify $ \st -> st {aOpen = Q.insert (calcPriority path') path' (aOpen st)}
+                                 let (priority1, priority2) = calcPriority' path'
+                                 -- liftIO $ putStrLn $ "Check: " ++ show path'
+                                 -- liftIO $ putStr $ showProblem $ ptState path'
+                                 -- liftIO $ putStrLn $ "Priority: " ++ show (priority1, priority2)
+                                 let priority = priority1 + priority2
+                                 modify $ \st -> st {aOpen = Q.insert priority path' (aOpen st)}
                                loop
+
+evalAStar :: Problem -> IO (Maybe Path)
+evalAStar p = evalStateT (aStar p) emptyAState
+
+chunksOf :: Int -> [a] -> [[a]]
+chunksOf _ [] = []
+chunksOf n lst = take n lst : chunksOf n (drop n lst)
 
 decodeProblem :: [String] -> Problem
 decodeProblem lines =
@@ -141,6 +166,16 @@ decodeProblem lines =
         grid = A.array ((0,0), (sizeY-1, sizeX-1)) $ zip indices lines'
         origin = (originY, originX)
     in  Problem grid origin origin
+
+showProblem :: Problem -> String
+showProblem p =
+    let textGrid = fmap showCell (pGrid p)
+        showCell Empty = ' '
+        showCell Wall = '#'
+        showCell Pill = '.'
+        textGrid' = textGrid // [(pPosition p, 'L'), (pOrigin p, 'o')]
+        (_, (maxY, maxX)) = A.bounds (pGrid p)
+    in  unlines $ chunksOf (maxX+1) $ A.elems textGrid'
 
 problemFromFile :: FilePath -> IO Problem
 problemFromFile path = do
