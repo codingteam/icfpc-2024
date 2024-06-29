@@ -2,6 +2,7 @@ module AST (AST (..), VarNo, evalAst) where
 
 import qualified Data.Text as T
 import Control.Monad.State
+import Data.Functor.Identity
 
 import Lib (parseNumber, printNumber)
 import Strings (textToGalaxy, textFromGalaxy)
@@ -170,31 +171,13 @@ evalAstStep (Apply fn arg) = do
       in Right body'
     _ -> Left "First argument of apply didn't evaluate to a lambda"
   where
-    replaceVar var value (Var varno) =
-      if varno == var
-        then value
-        else Var varno
-    replaceVar var value (Negate ast) = Negate $ replaceVar var value ast
-    replaceVar var value (Not ast) = Not $ replaceVar var value ast
-    replaceVar var value (StrToInt ast) = StrToInt $ replaceVar var value ast
-    replaceVar var value (IntToStr ast) = IntToStr $ replaceVar var value ast
-    replaceVar var value (Add lhs rhs) = Add (replaceVar var value lhs) (replaceVar var value rhs)
-    replaceVar var value (Sub lhs rhs) = Sub (replaceVar var value lhs) (replaceVar var value rhs)
-    replaceVar var value (Mult lhs rhs) = Mult (replaceVar var value lhs) (replaceVar var value rhs)
-    replaceVar var value (Div lhs rhs) = Div (replaceVar var value lhs) (replaceVar var value rhs)
-    replaceVar var value (Mod lhs rhs) = Mod (replaceVar var value lhs) (replaceVar var value rhs)
-    replaceVar var value (Lt lhs rhs) = Lt (replaceVar var value lhs) (replaceVar var value rhs)
-    replaceVar var value (Gt lhs rhs) = Gt (replaceVar var value lhs) (replaceVar var value rhs)
-    replaceVar var value (Equals lhs rhs) = Equals (replaceVar var value lhs) (replaceVar var value rhs)
-    replaceVar var value (Or lhs rhs) = Or (replaceVar var value lhs) (replaceVar var value rhs)
-    replaceVar var value (And lhs rhs) = And (replaceVar var value lhs) (replaceVar var value rhs)
-    replaceVar var value (Concat lhs rhs) = Concat (replaceVar var value lhs) (replaceVar var value rhs)
-    replaceVar var value (Take lhs rhs) = Take (replaceVar var value lhs) (replaceVar var value rhs)
-    replaceVar var value (Drop lhs rhs) = Drop (replaceVar var value lhs) (replaceVar var value rhs)
-    replaceVar var value (Apply lhs rhs) = Apply (replaceVar var value lhs) (replaceVar var value rhs)
-    replaceVar var value (If cond lhs rhs) = If (replaceVar var value cond) (replaceVar var value lhs) (replaceVar var value rhs)
-    replaceVar var value (Lambda varno body) = Lambda varno (replaceVar var value body)
-    replaceVar _ _ expr = expr
+    replaceVar var value ast =
+        runIdentity $
+            traverseAst
+                (\innerAst -> pure $ replaceVar var value innerAst)
+                (\varNo -> if varNo == var then pure value else pure $ Var varNo)
+                (\varNo body -> pure $ Lambda varNo (replaceVar var value body))
+                ast
 
 getMaxVarNo :: AST -> Integer
 getMaxVarNo (Boolean _) = 0
@@ -260,32 +243,16 @@ pop :: RenumberingStateM ()
 pop = modify $ \s -> s { shadowingStack = tail $ shadowingStack s }
 
 renumberVariablesM :: AST -> RenumberingStateM AST
-renumberVariablesM (Negate ast) = Negate <$> renumberVariablesM ast
-renumberVariablesM (Not ast) = Not <$> renumberVariablesM ast
-renumberVariablesM (StrToInt ast) = StrToInt <$> renumberVariablesM ast
-renumberVariablesM (IntToStr ast) = IntToStr <$> renumberVariablesM ast
-renumberVariablesM (Add lhs rhs) = Add <$> renumberVariablesM lhs <*> renumberVariablesM rhs
-renumberVariablesM (Sub lhs rhs) = Sub <$> renumberVariablesM lhs <*> renumberVariablesM rhs
-renumberVariablesM (Mult lhs rhs) = Mult <$> renumberVariablesM lhs <*> renumberVariablesM rhs
-renumberVariablesM (Div lhs rhs) = Div <$> renumberVariablesM lhs <*> renumberVariablesM rhs
-renumberVariablesM (Mod lhs rhs) = Mod <$> renumberVariablesM lhs <*> renumberVariablesM rhs
-renumberVariablesM (Lt lhs rhs) = Lt <$> renumberVariablesM lhs <*> renumberVariablesM rhs
-renumberVariablesM (Gt lhs rhs) = Gt <$> renumberVariablesM lhs <*> renumberVariablesM rhs
-renumberVariablesM (Equals lhs rhs) = Equals <$> renumberVariablesM lhs <*> renumberVariablesM rhs
-renumberVariablesM (Or lhs rhs) = Or <$> renumberVariablesM lhs <*> renumberVariablesM rhs
-renumberVariablesM (And lhs rhs) = And <$> renumberVariablesM lhs <*> renumberVariablesM rhs
-renumberVariablesM (Concat lhs rhs) = Concat <$> renumberVariablesM lhs <*> renumberVariablesM rhs
-renumberVariablesM (Take lhs rhs) = Take <$> renumberVariablesM lhs <*> renumberVariablesM rhs
-renumberVariablesM (Drop lhs rhs) = Drop <$> renumberVariablesM lhs <*> renumberVariablesM rhs
-renumberVariablesM (Apply lhs rhs) = Apply <$> renumberVariablesM lhs <*> renumberVariablesM rhs
-renumberVariablesM (If cond lhs rhs) = If <$> renumberVariablesM cond <*> renumberVariablesM lhs <*> renumberVariablesM rhs
-renumberVariablesM (Var varNo) = Var <$> lookupVarNo varNo
-renumberVariablesM (Lambda varNo ast) = do
-    newVarNo <- addVarNo varNo
-    result <- (Lambda newVarNo) <$> renumberVariablesM ast
-    pop
-    pure result
-renumberVariablesM ast = pure ast
+renumberVariablesM ast =
+    traverseAst
+        renumberVariablesM
+        (\varNo -> Var <$> lookupVarNo varNo)
+        (\varNo body -> do
+            newVarNo <- addVarNo varNo
+            result <- (Lambda newVarNo) <$> renumberVariablesM body
+            pop
+            pure result)
+        ast
 
 {-
 * иметь счётчик, начинающийся со 100500 (> максимального номера переменной)
@@ -298,3 +265,27 @@ renumberVariablesM ast = pure ast
 -}
 renumberVariables :: AST -> AST
 renumberVariables ast = evalState (renumberVariablesM ast) (initialState (getMaxVarNo ast))
+
+traverseAst :: Applicative m => (AST -> m AST) -> (VarNo -> m AST) -> (VarNo -> AST -> m AST) -> AST -> m AST
+traverseAst processAst _processVar _processLambda (Negate ast) = Negate <$> processAst ast
+traverseAst processAst _processVar _processLambda (Not ast) = Not <$> processAst ast
+traverseAst processAst _processVar _processLambda (StrToInt ast) = StrToInt <$> processAst ast
+traverseAst processAst _processVar _processLambda (IntToStr ast) = IntToStr <$> processAst ast
+traverseAst processAst _processVar _processLambda (Add lhs rhs) = Add <$> processAst lhs <*> processAst rhs
+traverseAst processAst _processVar _processLambda (Sub lhs rhs) = Sub <$> processAst lhs <*> processAst rhs
+traverseAst processAst _processVar _processLambda (Mult lhs rhs) = Mult <$> processAst lhs <*> processAst rhs
+traverseAst processAst _processVar _processLambda (Div lhs rhs) = Div <$> processAst lhs <*> processAst rhs
+traverseAst processAst _processVar _processLambda (Mod lhs rhs) = Mod <$> processAst lhs <*> processAst rhs
+traverseAst processAst _processVar _processLambda (Lt lhs rhs) = Lt <$> processAst lhs <*> processAst rhs
+traverseAst processAst _processVar _processLambda (Gt lhs rhs) = Gt <$> processAst lhs <*> processAst rhs
+traverseAst processAst _processVar _processLambda (Equals lhs rhs) = Equals <$> processAst lhs <*> processAst rhs
+traverseAst processAst _processVar _processLambda (Or lhs rhs) = Or <$> processAst lhs <*> processAst rhs
+traverseAst processAst _processVar _processLambda (And lhs rhs) = And <$> processAst lhs <*> processAst rhs
+traverseAst processAst _processVar _processLambda (Concat lhs rhs) = Concat <$> processAst lhs <*> processAst rhs
+traverseAst processAst _processVar _processLambda (Take lhs rhs) = Take <$> processAst lhs <*> processAst rhs
+traverseAst processAst _processVar _processLambda (Drop lhs rhs) = Drop <$> processAst lhs <*> processAst rhs
+traverseAst processAst _processVar _processLambda (Apply lhs rhs) = Apply <$> processAst lhs <*> processAst rhs
+traverseAst processAst _processVar _processLambda (If cond lhs rhs) = If <$> processAst cond <*> processAst lhs <*> processAst rhs
+traverseAst _processAst processVar _processLambda (Var varNo) = processVar varNo
+traverseAst _processAst _processVar processLambda (Lambda varNo ast) = processLambda varNo ast
+traverseAst _processAst _processVar _processLambda ast = pure ast
