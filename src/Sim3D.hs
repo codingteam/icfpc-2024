@@ -126,4 +126,37 @@ isGameOver :: Board -> Bool
 isGameOver board = True
 
 simulateStep :: Board -> Board
-simulateStep board = undefined
+simulateStep board =
+    let effects = produceUpdates board in
+    applyUpdates board effects
+
+type Update = (Int, Int, Cell)
+
+produceCellUpdate :: (Int, Int) -> Board -> [(Int, Int, Cell)]
+produceCellUpdate (x, y) board =
+    let cell = (board V.! y) V.! x in
+    case cell of
+        MoveLeft -> moveCell (x - 1, y) (x + 1, y) board
+        MoveRight -> moveCell (x + 1, y) (x - 1, y) board 
+        MoveUp -> moveCell (x, y - 1) (x, y + 1) board 
+        MoveDown -> moveCell (x, y + 1) (x, y - 1) board
+        Value _ -> []
+        Empty -> [] 
+        _ -> error $ "Unexpected cell: " ++ show cell ++ " at " ++ show (x, y) ++ " in " ++ show board ++ "."
+
+    where moveCell (x1, y1) (x2, y2) board = [(x1, y1, Empty), (x2, y2, (board V.! y) V.! x)]
+
+produceUpdates :: Board -> [Update]
+produceUpdates board =
+    V.toList $
+        V.concatMap id $ V.imap (\r row ->
+            V.concatMap id $ V.imap (\c _ -> (V.fromList $ produceCellUpdate (c, r) board)) row) board
+
+applyUpdates :: Board -> [Update] -> Board
+applyUpdates board [] = board
+applyUpdates board ((x, y, cell):updates) =
+    let row = board V.! y
+        newRow = row V.// [(x, cell)]
+        newBoard = board V.// [(y, newRow)] in
+    applyUpdates newBoard updates
+    
