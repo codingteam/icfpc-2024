@@ -28,7 +28,7 @@ shiftTests :: TestTree
 shiftTests = testGroup "Sim3D.shift"
     [
         testCase "Left" $ simulateStep (parseBoard "1 < 2") @?= parseBoard "2 < ."
-    ,   testCase "Right" $ simulateStep (parseBoard "1 > 2") @?= parseBoard ". > 2"  
+    ,   testCase "Right" $ simulateStep (parseBoard "1 > 2") @?= parseBoard ". > 1"  
     ,   testCase "Up" $ simulateStep (parseBoard "1\n^\n2") @?= parseBoard "1\n^\n."
     ,   testCase "Down" $ simulateStep (parseBoard "1\nv\n2") @?= parseBoard ".\nv\n2"
     ,   testCase "Operator shift" $ simulateStep (parseBoard "+ < -") @?= parseBoard "- < ."
