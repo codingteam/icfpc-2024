@@ -64,4 +64,9 @@ main = do
           Left err -> putStrLn $ "Failed to parse the file: " <> err
 
     ["http-all"] -> performDownloadAllKnown
+
+    ["upload", problem, path] -> do
+        txt <- TIO.readFile path
+        performRequest $ "solve " ++ problem ++ " " ++ (T.unpack txt)
+
     _ -> printHelp
