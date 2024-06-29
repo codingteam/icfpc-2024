@@ -149,14 +149,14 @@ contains
       integer :: dist, i, j
       warp_x = .false.
       dist = abs(next_star%x - ship%x)
-      if (dist <= 6) return
+      if (dist <= 1) return
       do i = 1, size(triangle_numbers)
-        if (triangle_numbers(i-1) * triangle_numbers(i) > dist) then
+        if (triangle_numbers(i+1) * triangle_numbers(i) > dist) then
           exit
         end if
       end do
       i = i - 1
-      if (i == 0) warp_x = .false.
+      if (i == 0) return
       warp_x = .true.
       do j = 1, i
         steps(nsteps) = acc
@@ -176,14 +176,14 @@ contains
       integer :: dist, i, j
       warp_y = .false.
       dist = abs(next_star%y - ship%y)
-      if (dist <= 6) return
+      if (dist <= 1) return
       do i = 1, size(triangle_numbers)
-        if (triangle_numbers(i-1) * triangle_numbers(i) > dist) then
+        if (triangle_numbers(i+1) * triangle_numbers(i) > dist) then
           exit
         end if
       end do
       i = i - 1
-      if (i == 0) warp_y = .false.
+      if (i == 0) return
       warp_y = .true.
       do j = 1, i
         steps(nsteps) = acc
