@@ -85,6 +85,8 @@ evalAstStep (Sub lhs rhs) = do
   case (lhs', rhs') of
     (Number a, Number b) -> Right $ Number (a-b)
     _ -> Left "Non-integer inputs to subtraction"
+evalAstStep (Mult (Number 0) _) = pure $ Number 0
+evalAstStep (Mult _ (Number 0)) = pure $ Number 0
 evalAstStep (Mult lhs rhs) = do
   lhs' <- evalAst lhs
   rhs' <- evalAst rhs
