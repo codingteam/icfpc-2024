@@ -9,11 +9,8 @@ module Lambdaman (
 
 import Control.Monad
 import Control.Monad.State
-import Control.Monad.ST
 import Data.Array.Unboxed as U
 import Data.Array.IArray as A
-import Data.Array.ST as ST
-import qualified Data.Array.MArray as M
 import GHC.Generics
 import Data.Hashable
 import Data.Maybe
