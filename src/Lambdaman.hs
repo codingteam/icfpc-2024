@@ -152,7 +152,7 @@ calcNPills (Grid grid) = length $ filter (== pillCell) $ U.elems grid
 calcPriority' :: Value -> Path -> (Value, Value)
 calcPriority' distanceToPills path = (originToCurrent, currentToGoal)
     where
-        originToCurrent = length $ ptSteps path
+        originToCurrent = 0 -- length $ ptSteps path
         currentToGoal = pNPills (evalPath path) + distanceToPills
 
 appendPath :: Direction -> Problem -> Path -> Path
@@ -173,7 +173,7 @@ unchecked = maxBound
 obstacle :: Mark
 obstacle = maxBound-1
 
-waveIteration :: Mark -> Grid16 -> Maybe [Position] -> (Grid16, [Position])
+waveIteration :: Mark -> Grid16 -> Maybe [Position] -> Maybe (Grid16, [Position])
 waveIteration startMark prevWaves mbIdxs =
     let startIdxs =
             case mbIdxs of
@@ -188,7 +188,9 @@ waveIteration startMark prevWaves mbIdxs =
                     in case prevWaves !? i' of
                         Just x | x == unchecked -> Just i'
                         _ -> Nothing
-    in  (waves', nextIdxs)
+    in  if null startIdxs
+            then Nothing
+            else Just (waves', nextIdxs)
 
 hasUnchecked :: Grid16 -> Bool
 hasUnchecked grid = not $ null $ findGridIndices unchecked grid
@@ -208,10 +210,9 @@ makeWave :: Grid -> Cell -> Grid16
 makeWave grid start =
     let initialWaves = initWave grid start
         loop mark mbIdxs waves =
-            let (waves', nextIdxs) = waveIteration mark waves mbIdxs
-            in  if hasUnchecked waves'
-                    then loop (mark+1) (Just nextIdxs) waves'
-                    else waves'
+            case waveIteration mark waves mbIdxs of
+                Just (waves', nextIdxs) -> loop (mark+1) (Just nextIdxs) waves'
+                Nothing -> waves
     in  loop 0 Nothing initialWaves
 
 getDistance :: Position -> Direction -> Grid16 -> Value
@@ -226,10 +227,11 @@ greedyStep checkNPills p =
         alternatives = mapMaybe check [U, D, L, R]
         check dir =
             let pos' = calcStep dir (pPosition p)
-            in case distances !? pos' of
-                Nothing -> Nothing
-                Just x | x == obstacle -> Nothing
-                Just d -> Just (dir, d, evalStep dir p)
+            in  case gGrid (pGrid p) !? pos' of
+                    Nothing -> Nothing
+                    Just x | x == pillCell -> Just (dir, 0, evalStep dir p)
+                           | x == wallCell -> Nothing
+                           | otherwise -> Just (dir, distances A.! pos', evalStep dir p)
     in  if (checkNPills && pNPills p == 0) || null alternatives
             then Nothing
             else Just $ (\(dir,_,p') -> (dir, p')) $ minimumBy (comparing (\(_,d,_) -> d)) alternatives
@@ -250,19 +252,22 @@ hasNeighbourPills p = any check [U, L, D, R]
 
 greedyGoToPill :: Problem -> Path -> A (Maybe (Path, Problem))
 greedyGoToPill p path = do
-    case greedyStep False p of
-        Nothing -> return Nothing
-        Just (step, p') -> do
-            -- liftIO $ putStrLn $ "Greedy check: " ++ show step ++ ": " ++ show (pNPills p) ++ " -> " ++ show (pNPills p') ++ ", has neigbour pills => " ++ show (hasNeighbourPills p')
-            markClosed p'
-            let path' = appendPath step p' path
-            if pNPills p' < pNPills p && (pNPills p' == 0 || hasNeighbourPills p')
-                then do
-                    -- liftIO $ putStrLn $ "Greedy returns: " ++ show path'
-                    return $ Just (path', p')
-                else do
-                    -- liftIO $ putStrLn "Greedy iteration"
-                    greedyGoToPill p' path'
+    if hasNeighbourPills p
+        then return $ Just (path, p)
+        else do
+            case greedyStep False p of
+                Nothing -> return Nothing
+                Just (step, p') -> do
+                    -- liftIO $ putStrLn $ "Greedy check: " ++ show step ++ ": " ++ show (pNPills p) ++ " -> " ++ show (pNPills p') ++ ", has neigbour pills => " ++ show (hasNeighbourPills p')
+                    markClosed p'
+                    let path' = appendPath step p' path
+                    if pNPills p' < pNPills p && (pNPills p' == 0 || hasNeighbourPills p')
+                        then do
+                            -- liftIO $ putStrLn $ "Greedy returns: " ++ show path'
+                            return $ Just (path', p')
+                        else do
+                            -- liftIO $ putStrLn "Greedy iteration"
+                            greedyGoToPill p' path'
 
 markClosed :: Problem -> A ()
 markClosed grid =
@@ -282,16 +287,16 @@ aStar p = do
             open <- gets aOpen
             case Q.minView open of
                 Nothing -> do
-                    liftIO $ putStrLn "end of queue"
+                    -- liftIO $ putStrLn "end of queue"
                     return Nothing
                 Just (path, rest) -> do
-                    liftIO $ putStrLn $ "From queue: " ++ show path
+                    -- liftIO $ putStrLn $ "From queue: " ++ show path
                     modify $ \st -> st {aOpen = rest}
                     let grid = extractPath path
                     closed <- gets aClosed
                     if grid `memberPS` closed
                       then do
-                        liftIO $ putStrLn "we were here already, skip"
+                        -- liftIO $ putStrLn "we were here already, skip"
                         loop
                       else if isGoal $ pGrid grid
                              then return $ Just path
@@ -301,8 +306,9 @@ aStar p = do
                                case mbToPill of
                                  Nothing -> return Nothing
                                  Just (pathToPill, grid') -> do
-                                   -- liftIO $ putStrLn $ "Greedy algorithm returned: " ++ show pathToPill
-                                   -- liftIO $ putStr $ showProblem grid'
+                                   -- when (pPosition grid /= pPosition grid') $ do
+                                       -- liftIO $ putStrLn $ "Greedy algorithm returned: " ++ show pathToPill
+                                       -- liftIO $ putStr $ showProblem grid'
                                    if isGoal $ pGrid grid'
                                      then return $ Just pathToPill
                                      else do
@@ -311,9 +317,9 @@ aStar p = do
                                          let path' = appendPath step y pathToPill
                                          let distanceToPills = getDistance (pPosition grid') step distancesToPills
                                          let (priority1, priority2) = calcPriority' distanceToPills path'
-                                         liftIO $ putStrLn $ "Check: " ++ show path' ++ ": " ++ show (pPosition grid') ++ " -> " ++ show (pPosition $ extractPath path')
-                                         liftIO $ putStr $ showProblem $ evalPath path'
-                                         liftIO $ putStrLn $ "Priority: " ++ show (priority1, priority2)
+                                         -- liftIO $ putStrLn $ "Check: " ++ show path' ++ ": " ++ show (pPosition grid') ++ " -> " ++ show (pPosition $ extractPath path')
+                                         -- liftIO $ putStr $ showProblem $ evalPath path'
+                                         -- liftIO $ putStrLn $ "Priority: " ++ show (priority1, priority2)
                                          let priority = priority1 + priority2
                                          enqueue priority path'
                                        loop
