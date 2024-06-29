@@ -14,16 +14,36 @@ contains
   integer function walk(ship, stars, steps) result(nsteps)
     type(ship_t), intent(inout) :: ship
     type(star_t), intent(in) :: stars(:)
-    integer(1) :: steps(:)
+    integer(1) :: steps(-1:)
     !
     integer :: istar
     type(star_t) :: next_star
+    logical :: do_walk_x
     !
+    do_walk_x = .true.
     nsteps = 1
     do istar = 1, size(stars)
       next_star = stars(istar)
+      nsteps = nsteps + 1
+      steps(nsteps) = 0
+      if (do_walk_x) then
+        call walk_x()
+        call walk_y()
+      else
+        call walk_x()
+        call walk_y()
+      end if
+    end do
+  contains
+    subroutine walk_x()
       if (next_star%x < ship%x) then
-        steps(nsteps) = 4
+        if (steps(nsteps-1) == 0 .and. &
+            steps(nsteps-2) == 6) then
+          nsteps = nsteps - 2
+          steps(nsteps) = 5
+        else
+          steps(nsteps) = 4
+        end if
         nsteps = nsteps + 1
         ship%x = ship%x - 1
         do while (next_star%x < ship%x)
@@ -33,8 +53,15 @@ contains
         end do
         steps(nsteps) = 6
         nsteps = nsteps + 1
+        do_walk_x = .true.
       else if (next_star%x > ship%x) then
-        steps(nsteps) = 6
+        if (steps(nsteps-1) == 0 .and. &
+            steps(nsteps-2) == 4) then
+          nsteps = nsteps - 2
+          steps(nsteps) = 5
+        else
+          steps(nsteps) = 6
+        end if
         nsteps = nsteps + 1
         ship%x = ship%x + 1
         do while (next_star%x > ship%x)
@@ -44,9 +71,18 @@ contains
         end do
         steps(nsteps) = 4
         nsteps = nsteps + 1
+        do_walk_x = .true.
       end if
+    end subroutine walk_x
+    subroutine walk_y()
       if (next_star%y < ship%y) then
-        steps(nsteps) = 2
+        if (steps(nsteps-1) == 0 .and. &
+            steps(nsteps-2) == 8) then
+          nsteps = nsteps - 2
+          steps(nsteps) = 5
+        else
+          steps(nsteps) = 2
+        end if
         nsteps = nsteps + 1
         ship%y = ship%y - 1
         do while (next_star%y < ship%y)
@@ -56,8 +92,15 @@ contains
         end do
         steps(nsteps) = 8
         nsteps = nsteps + 1
+        do_walk_x = .false.
       else if (next_star%y > ship%y) then
-        steps(nsteps) = 8
+        if (steps(nsteps-1) == 0 .and. &
+            steps(nsteps-2) == 2) then
+          nsteps = nsteps - 2
+          steps(nsteps) = 5
+        else
+          steps(nsteps) = 8
+        end if
         nsteps = nsteps + 1
         ship%y = ship%y + 1
         do while (next_star%y > ship%y)
@@ -67,8 +110,9 @@ contains
         end do
         steps(nsteps) = 2
         nsteps = nsteps + 1
+        do_walk_x = .false.
       end if
-    end do
+    end subroutine walk_y
   end function walk
 end module space_m
 
@@ -80,7 +124,7 @@ program main
   type(ship_t) :: ship
   integer(1), allocatable :: steps(:)
   integer :: nsteps, task_id
-  allocate(steps(max_steps), source = 0_1)
+  allocate(steps(-1:max_steps), source = 0_1)
   read(*,*) task_id
   stars = load_stars(task_id)
   nsteps = walk(ship, stars, steps) - 1
