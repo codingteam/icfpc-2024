@@ -49,8 +49,10 @@ library
     , http-conduit
     , megaparsec >=9.5.0
     , mtl
+    , pqueue
     , pretty-simple
     , text
+    , unordered-containers
   default-language: Haskell2010
 
 executable icfpc-y2024-exe
@@ -73,8 +75,10 @@ executable icfpc-y2024-exe
     , http-conduit
     , icfpc-y2024
     , megaparsec >=9.5.0
+    , pqueue
     , pretty-simple
     , text
+    , unordered-containers
   default-language: Haskell2010
 
 test-suite icfpc-y2024-test
@@ -100,9 +104,11 @@ test-suite icfpc-y2024-test
     , http-conduit
     , icfpc-y2024
     , megaparsec >=9.5.0
+    , pqueue
     , pretty-simple
     , tasty
     , tasty-hunit
     , tasty-quickcheck
     , text >=2.0.2
+    , unordered-containers
   default-language: Haskell2010
