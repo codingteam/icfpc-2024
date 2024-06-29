@@ -46,14 +46,16 @@ contains
         else
           steps(nsteps) = 4
         end if
+        ship%vx = ship%vx - 1
         nsteps = nsteps + 1
-        ship%x = ship%x - 1
+        ship%x = ship%x + ship%vx
         do while (next_star%x < ship%x)
-          ship%x = ship%x - 1
+          ship%x = ship%x + ship%vx
           steps(nsteps) = 5
           nsteps = nsteps + 1
         end do
         steps(nsteps) = 6
+        ship%vx = ship%vx + 1
         nsteps = nsteps + 1
         do_walk_x = .true.
       else if (next_star%x > ship%x) then
@@ -65,14 +67,16 @@ contains
         else
           steps(nsteps) = 6
         end if
+        ship%vx = ship%vx + 1
         nsteps = nsteps + 1
-        ship%x = ship%x + 1
+        ship%x = ship%x + ship%vx
         do while (next_star%x > ship%x)
-          ship%x = ship%x + 1
+          ship%x = ship%x + ship%vx
           steps(nsteps) = 5
           nsteps = nsteps + 1
         end do
         steps(nsteps) = 4
+        ship%vx = ship%vx - 1
         nsteps = nsteps + 1
         do_walk_x = .true.
       end if
@@ -87,14 +91,16 @@ contains
         else
           steps(nsteps) = 2
         end if
+        ship%vy = ship%vy - 1
         nsteps = nsteps + 1
-        ship%y = ship%y - 1
+        ship%y = ship%y + ship%vy
         do while (next_star%y < ship%y)
-          ship%y = ship%y - 1
+          ship%y = ship%y + ship%vy
           steps(nsteps) = 5
           nsteps = nsteps + 1
         end do
         steps(nsteps) = 8
+        ship%vy = ship%vy + 1
         nsteps = nsteps + 1
         do_walk_x = .false.
       else if (next_star%y > ship%y) then
@@ -106,14 +112,16 @@ contains
         else
           steps(nsteps) = 8
         end if
+        ship%vy = ship%vy + 1
         nsteps = nsteps + 1
-        ship%y = ship%y + 1
+        ship%y = ship%y + ship%vy
         do while (next_star%y > ship%y)
-          ship%y = ship%y + 1
+          ship%y = ship%y + ship%vy
           steps(nsteps) = 5
           nsteps = nsteps + 1
         end do
         steps(nsteps) = 2
+        ship%vy = ship%vy - 1
         nsteps = nsteps + 1
         do_walk_x = .false.
       end if
