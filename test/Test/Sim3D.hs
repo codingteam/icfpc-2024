@@ -32,8 +32,8 @@ basicCellPreservationTests = testGroup "Sim3D.basicCellPreservation"
 autoExpandTests :: TestTree
 autoExpandTests = testGroup "Sim3D.autoExpand"
     [
-        testCase "Horizontal" $ doStep (parseBoard "< 1 >") @?= parseBoard "1 < . > 1"
-    ,   testCase "Vertical" $ doStep (parseBoard "^\n1\nv") @?= parseBoard "1\n^\n.\nv\n1"
+        testCase "Horizontal" $ doStep (parseBoard "< 1 >") @?= (shiftBy (-1, 0) $ parseBoard "1 < . > 1")
+    ,   testCase "Vertical" $ doStep (parseBoard "^\n1\nv") @?= (shiftBy (0, -1) $ parseBoard "1\n^\n.\nv\n1")
     ]
 
 shiftTests :: TestTree

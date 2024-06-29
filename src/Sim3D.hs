@@ -1,4 +1,4 @@
-module Sim3D (simulate, simulateStep, parseBoard, Board, stateFromBoard, Sim3dState(..)) where
+module Sim3D (simulate, simulateStep, parseBoard, Board, stateFromBoard, Sim3dState(..), shiftBy) where
 
 import qualified Data.Char as C
 import qualified Data.Vector as V
@@ -233,7 +233,7 @@ performArithmetic op (x, y) = do
             writeTo (x, y + 1) (Value result)
         _ -> pure ()
 
--- Brings the whole board back into coordinate (0, 0), clean up Empty cells
+-- Clean up Empty cells.
 normalize :: Board -> Board
 normalize board =
     let filteredCells = M.filter (/= Empty) $ cells board
@@ -241,10 +241,16 @@ normalize board =
         minY = if null filteredCells then 0 else minimum $ map snd $ M.keys filteredCells
         maxX = if null filteredCells then 0 else maximum $ map fst $ M.keys filteredCells
         maxY = if null filteredCells then 0 else maximum $ map snd $ M.keys filteredCells
-        shiftX = -minX
-        shiftY = -minY
-        newCells = M.mapKeys (\(x, y) -> (x + shiftX, y + shiftY)) filteredCells
-        newMin = (0, 0)
-        newMax = (maxX + shiftX, maxY + shiftY) in
-    board { cells = newCells, minCoords = newMin, maxCoords = newMax }
+        newMin = (minX, minY)
+        newMax = (maxX, maxY) in
+    board { cells = filteredCells, minCoords = newMin, maxCoords = newMax }
 
+shiftBy :: (Integer, Integer) -> Board -> Board
+shiftBy (dx, dy) board =
+    let shiftCell (x, y) = (x + dx, y + dy)
+        shiftedCells = M.mapKeys (shiftCell) $ cells board
+        (minX, minY) = minCoords board
+        (maxX, maxY) = maxCoords board
+        newMin = (minX + dx, minY + dy)
+        newMax = (maxX + dx, maxY + dy) in
+    board { cells = shiftedCells, minCoords = newMin, maxCoords = newMax }
