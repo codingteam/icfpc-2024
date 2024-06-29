@@ -251,13 +251,13 @@ aStar p = do
             case Q.minView open of
                 Nothing -> return Nothing
                 Just (path, rest) -> do
-                    -- liftIO $ putStrLn $ "From queue: " ++ show path
+                    liftIO $ putStrLn $ "From queue: " ++ show path
                     modify $ \st -> st {aOpen = rest}
                     let grid = extractPath path
                     closed <- gets aClosed
                     if grid `memberPS` closed
                       then do
-                        -- liftIO $ putStrLn "we were here already, skip"
+                        liftIO $ putStrLn "we were here already, skip"
                         loop
                       else if isGoal $ pGrid grid
                              then return $ Just path
@@ -268,9 +268,9 @@ aStar p = do
                                  let path' = appendPath step y path
                                  let distanceToPills = getDistance (pPosition grid) step distancesToPills
                                  let (priority1, priority2) = calcPriority' distanceToPills path'
-                                 -- liftIO $ putStrLn $ "Check: " ++ show path' ++ ": " ++ show (pPosition grid) ++ " -> " ++ show (pPosition $ extractPath path')
-                                 -- liftIO $ putStr $ showProblem $ ptState path'
-                                 -- liftIO $ putStrLn $ "Priority: " ++ show (priority1, priority2)
+                                 liftIO $ putStrLn $ "Check: " ++ show path' ++ ": " ++ show (pPosition grid) ++ " -> " ++ show (pPosition $ extractPath path')
+                                 liftIO $ putStr $ showProblem $ evalPath path'
+                                 liftIO $ putStrLn $ "Priority: " ++ show (priority1, priority2)
                                  let priority = priority1 + priority2
                                  modify $ \st -> st {aOpen = Q.insert priority path' (aOpen st)}
                                loop
@@ -278,11 +278,9 @@ aStar p = do
 evalAStar :: Problem -> IO (Maybe Path)
 evalAStar p = evalStateT (aStar p) emptyAState
 
-{-
 chunksOf :: Int -> [a] -> [[a]]
 chunksOf _ [] = []
 chunksOf n lst = take n lst : chunksOf n (drop n lst)
--}
 
 decodeProblem :: [String] -> Problem
 decodeProblem fileLines =
@@ -306,20 +304,18 @@ decodeProblem fileLines =
         nPills = calcNPills grid
     in  Problem grid origin origin nPills
 
-{-
 showProblem :: Problem -> String
 showProblem p =
     let textGrid :: U.UArray Position Char
         textGrid =
-            let idxs = U.indices (pGrid p)
-            in U.array (A.bounds (pGrid p)) [(i, showCell (pGrid p U.! i)) | i <- idxs]
+            let idxs = U.indices (gGrid $ pGrid p)
+            in U.array (A.bounds (gGrid $ pGrid p)) [(i, showCell ((gGrid $ pGrid p) U.! i)) | i <- idxs]
         showCell 0 = ' '
         showCell 2 = '#'
         showCell 1 = '.'
         textGrid' = textGrid // [(pPosition p, 'L'), (pOrigin p, 'o')]
-        (_, (_maxY, maxX)) = U.bounds (pGrid p)
+        (_, (_maxY, maxX)) = U.bounds (gGrid $ pGrid p)
     in  unlines $ chunksOf (maxX+1) $ U.elems textGrid'
--}
 
 problemFromFile :: FilePath -> IO Problem
 problemFromFile path = do
