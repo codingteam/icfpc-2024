@@ -154,7 +154,7 @@ calcPriority' distanceToPills path = (originToCurrent, currentToGoal)
         currentToGoal = pNPills (evalPath path) + distanceToPills
 
 appendPath :: Direction -> Problem -> Path -> Path
-appendPath step p path =
+appendPath step _p path =
     path {ptSteps = step : ptSteps path}
 
 singletonPath :: Problem -> Path
