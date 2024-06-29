@@ -1,11 +1,14 @@
-{-# LANGUAGE FlexibleInstances, DeriveGeneric, BangPatterns #-}
+{-# LANGUAGE FlexibleInstances, DeriveGeneric, BangPatterns, FlexibleContexts #-}
 
 module Lambdaman where
 
 import Control.Monad
 import Control.Monad.State
+import Control.Monad.ST
 import Data.Array.Unboxed as U
 import Data.Array.IArray as A
+import Data.Array.ST as ST
+import qualified Data.Array.MArray as M
 import GHC.Generics
 import Data.Hashable
 import Data.Maybe
@@ -30,6 +33,7 @@ data Direction = U | R | D | L
 
 type Position = (Int, Int)
 type Grid = UArray Position Cell
+type Grid16 = UArray Position Word16
 
 data Problem = Problem {
     pGrid :: Grid
@@ -39,8 +43,11 @@ data Problem = Problem {
   }
   deriving (Eq, Show, Generic)
 
+findGridIndices :: (Eq a, IArray UArray a) => a -> UArray Position a -> [Position]
+findGridIndices c grid = map fst $ filter (\(_i, e) -> e == c) $ U.assocs grid
+
 instance Hashable (UArray (Int,Int) Cell) where
-    hashWithSalt salt a = foldr (flip hashWithSalt) salt $ map fst $ filter (\(_i, e) -> e == pillCell) $ U.assocs a
+    hashWithSalt salt a = foldr (flip hashWithSalt) salt $ findGridIndices pillCell a
 
 instance Hashable Problem where
     hashWithSalt salt p =
@@ -105,7 +112,7 @@ calcStep D (y,x) = (y+1, x)
 calcStep L (y,x) = (y, x-1)
 
 evalStep :: Direction -> Problem -> Problem
-evalStep step p =
+evalStep step !p =
     let pos' = calcStep step (pPosition p)
     in case pGrid p !? pos' of
         Nothing -> p
@@ -132,11 +139,11 @@ successors p = mapMaybe check [U, R, D, L]
 calcNPills :: Grid -> Value
 calcNPills grid = length $ filter (== pillCell) $ U.elems grid
 
-calcPriority' :: Path -> (Value, Value)
-calcPriority' path = (originToCurrent, currentToGoal)
+calcPriority' :: Value -> Path -> (Value, Value)
+calcPriority' distanceToPills path = (originToCurrent, currentToGoal)
     where
         originToCurrent = length $ ptSteps path
-        currentToGoal = pNPills $ evalPath path
+        currentToGoal = pNPills (evalPath path) + distanceToPills
 
 appendPath :: Direction -> Problem -> Path -> Path
 appendPath step p path =
@@ -147,6 +154,60 @@ singletonPath p = Path {ptOriginal = p, ptSteps = []}
 
 extractPath :: Path -> Problem
 extractPath path = evalPath path
+
+type StGrid s = ST.STUArray s Position Cell
+
+type Mark = Word16
+
+unchecked :: Mark
+unchecked = maxBound
+
+obstacle :: Mark
+obstacle = maxBound-1
+
+waveIteration :: Mark -> Grid16 -> Grid16
+waveIteration startMark prevWaves =
+    let startIdxs = findGridIndices startMark prevWaves
+        nextIdxs = H.toList $ H.fromList $ concatMap checkNeighbours startIdxs
+        waves' = prevWaves // [(i, startMark+1) | i <- nextIdxs]
+        checkNeighbours i = mapMaybe check [U, R, D, L]
+            where
+                check dir =
+                    let i' = calcStep dir i
+                    in case prevWaves !? i' of
+                        Just x | x == unchecked -> Just i'
+                        _ -> Nothing
+    in  waves'
+
+hasUnchecked :: Grid16 -> Bool
+hasUnchecked grid = not $ null $ findGridIndices unchecked grid
+
+initWave :: Grid -> Cell -> Grid16
+initWave grid start =
+    let bs = bounds grid
+        waves = A.array bs [(i, translate $ grid A.! i) | i <- A.indices grid]
+        startMark = 0
+        translate c
+            | c == wallCell = obstacle
+            | c == start = startMark
+            | otherwise = unchecked
+    in  waves
+
+makeWave :: Grid -> Cell -> Grid16
+makeWave grid start =
+    let waves = initWave grid start
+        loop mark waves =
+            let waves' = waveIteration mark waves
+            in  if hasUnchecked waves'
+                    then loop (mark+1) waves'
+                    else waves'
+    in  loop 0 waves
+
+getDistance :: Position -> Direction -> Grid16 -> Value
+getDistance pos dir distances =
+    case distances !? calcStep dir pos of
+        Nothing -> fromIntegral unchecked
+        Just d -> fromIntegral d
 
 aStar :: Problem -> A (Maybe Path)
 aStar p = do
@@ -171,9 +232,11 @@ aStar p = do
                              then return $ Just path
                              else do
                                modify $ \st -> st {aClosed = insertPS grid (aClosed st)}
+                               let distancesToPills = makeWave (pGrid grid) pillCell
                                forM_ (successors grid) $ \(step, y) -> do
                                  let path' = appendPath step y path
-                                 let (priority1, priority2) = calcPriority' path'
+                                 let distanceToPills = getDistance (pPosition grid) step distancesToPills
+                                 let (priority1, priority2) = calcPriority' distanceToPills path'
                                  -- liftIO $ putStrLn $ "Check: " ++ show path' ++ ": " ++ show (pPosition grid) ++ " -> " ++ show (pPosition $ extractPath path')
                                  -- liftIO $ putStr $ showProblem $ ptState path'
                                  -- liftIO $ putStrLn $ "Priority: " ++ show (priority1, priority2)
