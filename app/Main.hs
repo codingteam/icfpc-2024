@@ -64,6 +64,11 @@ main = do
         Just sol <- evalAStar problem
         print sol
 
+    ["greedy-lambdaman", path] -> do
+        problem <- problemFromFile path
+        let sol = greedySolve problem
+        putStrLn $ showPath sol
+
     ["http-eval-galaxy", path] -> do
         txt <- TIO.readFile path
         case parseExpression txt of
