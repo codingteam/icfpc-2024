@@ -25,7 +25,6 @@ library
   exposed-modules:
       AST
       Config
-      DSL
       HttpRequests
       Lambdaman
       Lib

@@ -1,6 +1,11 @@
 {-# LANGUAGE FlexibleInstances, DeriveGeneric, BangPatterns, FlexibleContexts #-}
 
-module Lambdaman where
+module Lambdaman (
+    problemFromFile
+,   evalAStar
+,   greedySolve
+,   showPath
+) where
 
 import Control.Monad
 import Control.Monad.State
