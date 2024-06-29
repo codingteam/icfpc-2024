@@ -1,7 +1,9 @@
-module Sim3D (simulate) where
+module Sim3D (simulate, simulateStep, parseBoard) where
 
 import qualified Data.Char as C
 import qualified Data.Vector as V
+import qualified Data.Text as DT
+import qualified Data.Text.IO as DTI
   
 data Cell = 
       Empty
@@ -21,16 +23,20 @@ data Cell =
     | OutputS
     | InputA
     | InputB
+    deriving (Eq, Show)
   
 type Board = V.Vector (V.Vector Cell)
 
-isNumber :: String -> Bool
-isNumber ('-' : digits) = all C.isDigit digits
-isNumber digits = all C.isDigit digits
+isNumber :: DT.Text -> Bool
+isNumber text =
+    case DT.unpack text of
+        [] -> False
+        ('-':digits) -> all C.isDigit digits
+        digits -> all C.isDigit digits
 
-readCell :: String -> Cell
+readCell :: DT.Text -> Cell
 readCell "." = Empty
-readCell x | isNumber x = Value $ read x
+readCell x | isNumber x = Value $ read $ DT.unpack x
 readCell "<" = MoveLeft
 readCell ">" = MoveRight
 readCell "^" = MoveUp
@@ -47,12 +53,16 @@ readCell "S" = OutputS
 readCell "A" = InputA 
 readCell "B" = InputB
 
+parseBoard :: DT.Text -> Board
+parseBoard contents =
+    let textRows = DT.lines contents
+        textCells = map DT.words textRows in
+    V.fromList $ map (V.fromList . map readCell) textCells
+
 readBoard :: String -> IO Board
 readBoard path = do
-    contents <- readFile path
-    let textRows = lines contents
-        textCells = map words textRows
-    return $ V.fromList $ map (V.fromList . map readCell) textCells    
+    contents <- DTI.readFile path
+    return $ parseBoard contents    
 
 type Inputs = (Int, Int)
  
@@ -95,17 +105,22 @@ simulate :: String -> Inputs -> IO ()
 simulate boardPath inputs = do
     board <- readBoard boardPath
     let board' = replaceInputs board inputs
-    doSimulation board'    
+        isAlreadyOver = isGameOver board'
+    if isAlreadyOver then do
+        putStrLn "I cannot see the goal on the initial board. This game will never end."
+        doSimulation board' False
+    else
+        doSimulation board' True 
         
-doSimulation :: Board -> IO ()
-doSimulation board = do
+doSimulation :: Board -> Bool -> IO ()
+doSimulation board checkGameOver = do
     printBoard board
-    if isGameOver board then
+    if checkGameOver && isGameOver board then
         putStrLn "Game over!"
     else do
         putStrLn "Press enter to continue."
         _ <- getLine
-        doSimulation $ simulateStep board    
+        doSimulation (simulateStep board) checkGameOver    
 
 isGameOver :: Board -> Bool
 isGameOver board = True

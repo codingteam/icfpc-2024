@@ -92,6 +92,7 @@ test-suite icfpc-y2024-test
       Test.AST
       Test.Lib
       Test.StringBitCoding
+      Test.Sim3D
       Paths_icfpc_y2024
   autogen-modules:
       Paths_icfpc_y2024
