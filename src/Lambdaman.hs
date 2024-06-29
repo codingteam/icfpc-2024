@@ -244,7 +244,7 @@ hasNeighbourPills :: Problem -> Bool
 hasNeighbourPills p = any check [U, L, D, R]
     where
         check dir =
-            case pGrid p !? calcStep dir (pPosition p) of
+            case gGrid (pGrid p) !? calcStep dir (pPosition p) of
                 Just x | x == pillCell -> True
                 _ -> False
 
@@ -321,11 +321,9 @@ aStar p = do
 evalAStar :: Problem -> IO (Maybe Path)
 evalAStar p = evalStateT (aStar p) emptyAState
 
-{-
 chunksOf :: Int -> [a] -> [[a]]
 chunksOf _ [] = []
 chunksOf n lst = take n lst : chunksOf n (drop n lst)
--}
 
 decodeProblem :: [String] -> Problem
 decodeProblem fileLines =
@@ -349,20 +347,18 @@ decodeProblem fileLines =
         nPills = calcNPills grid
     in  Problem grid origin origin nPills
 
-{-
 showProblem :: Problem -> String
 showProblem p =
     let textGrid :: U.UArray Position Char
         textGrid =
-            let idxs = U.indices (pGrid p)
-            in U.array (A.bounds (pGrid p)) [(i, showCell (pGrid p U.! i)) | i <- idxs]
+            let idxs = U.indices $ gGrid (pGrid p)
+            in U.array (A.bounds (gGrid $ pGrid p)) [(i, showCell ((gGrid $ pGrid p) U.! i)) | i <- idxs]
         showCell 0 = ' '
         showCell 2 = '#'
         showCell 1 = '.'
         textGrid' = textGrid // [(pPosition p, 'L'), (pOrigin p, 'o')]
-        (_, (_maxY, maxX)) = U.bounds (pGrid p)
+        (_, (_maxY, maxX)) = U.bounds (gGrid $ pGrid p)
     in  unlines $ chunksOf (maxX+1) $ U.elems textGrid'
--}
 
 problemFromFile :: FilePath -> IO Problem
 problemFromFile path = do
