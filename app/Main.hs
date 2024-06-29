@@ -57,8 +57,6 @@ main = do
         problem <- problemFromFile path
         Just sol <- evalAStar problem
         print sol
-        let p' = evalPath problem sol
-        putStr $ showProblem p'
 
     ["http", request] -> performRequest request
     ["http-raw", request] -> performRequest' False request
