@@ -1,44 +1,52 @@
 module StringBitCoding (
     bitcodeDecompressor
-,   bitcodeString
 ,   toSelfExtractingBitcode
+
+,   lambdamanAlphabet
+,   spaceshipAlphabet
 ) where
 
+import qualified Data.Map.Strict as M
 import qualified Data.Text as T
 
 import AST
 
+lambdamanAlphabet, spaceshipAlphabet :: T.Text
+lambdamanAlphabet = "UDLR"
+spaceshipAlphabet = "123456789"
+
 --- Encodes a lambdaman solution into an expression which, when evaluated,
 --- produces the initial solution.
-toSelfExtractingBitcode :: T.Text -> AST
-toSelfExtractingBitcode input =
+toSelfExtractingBitcode :: T.Text -> T.Text -> AST
+toSelfExtractingBitcode alphabet input =
     Apply
-    (Apply bitcodeDecompressor (bitcodeString input))
+    (Apply (bitcodeDecompressor alphabet) (bitcodeString alphabet input))
     (Number $ fromIntegral $ T.length input)
 
 --- Encodes a lambdaman solution (a string of "UDLR" characters) as a number
 --- (to be decoded on by `bitcodeDecompressor`).
-bitcodeString :: T.Text -> AST
-bitcodeString input = Number $ sum $ zipWith (\m i -> moveToDigit m * base^i) (T.unpack input) ([0..] :: [Integer])
+bitcodeString :: T.Text -> T.Text -> AST
+bitcodeString alphabet input = Number $ sum $ zipWith (\m i -> moveToDigit m * base^i) (T.unpack input) ([0..] :: [Integer])
     where
-        base = 4
+        base = fromIntegral $ T.length alphabet
 
-        moveToDigit 'U' = 0
-        moveToDigit 'D' = 1
-        moveToDigit 'L' = 2
-        moveToDigit 'R' = 3
-        moveToDigit c = error $ "moveToDigit: unknown move \"" ++ [c] ++ "\""
+        mapping = M.fromList $ zip (T.unpack alphabet) ([0..] :: [Integer])
+
+        moveToDigit move =
+            case move `M.lookup` mapping of
+                Just index -> index
+                Nothing -> error $ "moveToDigit: unknown move \"" ++ [move] ++ "\""
 
 --- Galaxy program which, given a number, decompressed it into a string of
 --- "RLUD" characters.
-bitcodeDecompressor :: AST
-bitcodeDecompressor = Apply yCombinator recursiveDecompressor
+bitcodeDecompressor :: T.Text -> AST
+bitcodeDecompressor alphabet = Apply yCombinator recursiveDecompressor
     where
         self = Var 0
         input_number = Var 1
         quotinent = Var 2
         decoded_char = Var 3
-        base = Number 4
+        base = Number $ fromIntegral $ T.length alphabet
         steps_remaining = Var 4
         recursiveDecompressor =
             Lambda 0 -- self-reference
@@ -70,7 +78,7 @@ bitcodeDecompressor = Apply yCombinator recursiveDecompressor
 
         decodeChar =
           Lambda 1 -- the current remainder
-          (Take (Number 1) (Drop (Var 1) (Str "UDLR")))
+          (Take (Number 1) (Drop (Var 1) (Str alphabet)))
 
 yCombinator :: AST
 yCombinator = Lambda 0 (Apply (Lambda 1 (Apply (Var 0) (Apply (Var 1) (Var 1)))) (Lambda 2 (Apply (Var 0) (Apply (Var 2) (Var 2)))))

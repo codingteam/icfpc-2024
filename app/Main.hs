@@ -68,7 +68,7 @@ main = do
 
     ["http-lambdaman-solution-using-bitcoding", problem_no, solution] -> do
         let packed = T.pack solution
-            compressed = toSelfExtractingBitcode packed
+            compressed = toSelfExtractingBitcode lambdamanAlphabet packed
             instruction = "solve lambdaman" <> (T.pack problem_no) <> " "
             program = Concat (Str instruction) compressed
             verbatimProgram = instruction <> packed
