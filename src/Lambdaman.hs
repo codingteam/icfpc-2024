@@ -244,7 +244,7 @@ hasNeighbourPills :: Problem -> Bool
 hasNeighbourPills p = any check [U, L, D, R]
     where
         check dir =
-            case pGrid p !? calcStep dir (pPosition p) of
+            case gGrid (pGrid p) !? calcStep dir (pPosition p) of
                 Just x | x == pillCell -> True
                 _ -> False
 
@@ -351,7 +351,7 @@ showProblem :: Problem -> String
 showProblem p =
     let textGrid :: U.UArray Position Char
         textGrid =
-            let idxs = U.indices (gGrid $ pGrid p)
+            let idxs = U.indices $ gGrid (pGrid p)
             in U.array (A.bounds (gGrid $ pGrid p)) [(i, showCell ((gGrid $ pGrid p) U.! i)) | i <- idxs]
         showCell 0 = ' '
         showCell 2 = '#'
