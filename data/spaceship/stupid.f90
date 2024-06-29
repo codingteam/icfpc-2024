@@ -37,6 +37,7 @@ contains
     end do
   contains
     subroutine walk_x()
+      logical :: do_warp
       if (next_star%x < ship%x) then
         if (steps(nsteps-1) == 0 .and. &
             steps(nsteps-2) == 6) then
@@ -49,6 +50,10 @@ contains
         ship%vx = ship%vx - 1
         nsteps = nsteps + 1
         ship%x = ship%x + ship%vx
+        do
+          do_warp = warp_x(4, 6, -1)
+          if(.not. do_warp) exit
+        end do
         do while (next_star%x < ship%x)
           ship%x = ship%x + ship%vx
           steps(nsteps) = 5
@@ -70,6 +75,10 @@ contains
         ship%vx = ship%vx + 1
         nsteps = nsteps + 1
         ship%x = ship%x + ship%vx
+        do
+          do_warp = warp_x(6, 4, +1)
+          if(.not. do_warp) exit
+        end do
         do while (next_star%x > ship%x)
           ship%x = ship%x + ship%vx
           steps(nsteps) = 5
@@ -82,6 +91,7 @@ contains
       end if
     end subroutine walk_x
     subroutine walk_y()
+      logical :: do_warp
       if (next_star%y < ship%y) then
         if (steps(nsteps-1) == 0 .and. &
             steps(nsteps-2) == 8) then
@@ -94,6 +104,10 @@ contains
         ship%vy = ship%vy - 1
         nsteps = nsteps + 1
         ship%y = ship%y + ship%vy
+        do
+          do_warp = warp_y(2, 8, -1)
+          if(.not. do_warp) exit
+        end do
         do while (next_star%y < ship%y)
           ship%y = ship%y + ship%vy
           steps(nsteps) = 5
@@ -115,6 +129,10 @@ contains
         ship%vy = ship%vy + 1
         nsteps = nsteps + 1
         ship%y = ship%y + ship%vy
+        do
+          do_warp = warp_y(8, 2, +1)
+          if(.not. do_warp) exit
+        end do
         do while (next_star%y > ship%y)
           ship%y = ship%y + ship%vy
           steps(nsteps) = 5
@@ -126,6 +144,60 @@ contains
         do_walk_x = .false.
       end if
     end subroutine walk_y
+    logical function warp_x(acc, dec, dir)
+      integer :: acc, dec, dir
+      integer :: dist, i, j
+      warp_x = .false.
+      dist = abs(next_star%x - ship%x)
+      if (dist <= 6) return
+      do i = 1, size(triangle_numbers)
+        if (triangle_numbers(i-1) * triangle_numbers(i) > dist) then
+          exit
+        end if
+      end do
+      i = i - 1
+      if (i == 0) warp_x = .false.
+      warp_x = .true.
+      do j = 1, i
+        steps(nsteps) = acc
+        ship%vx = ship%vx + dir
+        ship%x = ship%x + ship%vx
+        nsteps = nsteps + 1
+      end do
+      do j = 1, i
+        steps(nsteps) = dec
+        ship%vx = ship%vx - dir
+        ship%x = ship%x + ship%vx
+        nsteps = nsteps + 1
+      end do
+    end function warp_x
+    logical function warp_y(acc, dec, dir)
+      integer :: acc, dec, dir
+      integer :: dist, i, j
+      warp_y = .false.
+      dist = abs(next_star%y - ship%y)
+      if (dist <= 6) return
+      do i = 1, size(triangle_numbers)
+        if (triangle_numbers(i-1) * triangle_numbers(i) > dist) then
+          exit
+        end if
+      end do
+      i = i - 1
+      if (i == 0) warp_y = .false.
+      warp_y = .true.
+      do j = 1, i
+        steps(nsteps) = acc
+        ship%vy = ship%vy + dir
+        ship%y = ship%y + ship%vy
+        nsteps = nsteps + 1
+      end do
+      do j = 1, i
+        steps(nsteps) = dec
+        ship%vy = ship%vy - dir
+        ship%y = ship%y + ship%vy
+        nsteps = nsteps + 1
+      end do
+    end function warp_y
   end function walk
   subroutine init_space_m()
     integer, parameter :: tr_max = 1000
@@ -147,7 +219,6 @@ program main
   integer :: nsteps, task_id, i
   call init_space_m()
   allocate(steps(-1:max_steps), source = 0_1)
-  print *, triangle_numbers
   read(*,*) task_id
   stars = load_stars(task_id)
   nsteps = walk(ship, stars, steps) - 1
