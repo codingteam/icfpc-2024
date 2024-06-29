@@ -151,7 +151,7 @@ contains
       dist = abs(next_star%x - ship%x)
       if (dist <= 1) return
       do i = 1, size(triangle_numbers)
-        if (triangle_numbers(i+1) * triangle_numbers(i) > dist) then
+        if (triangle_numbers(i+1) + triangle_numbers(i) > dist) then
           exit
         end if
       end do
@@ -178,7 +178,7 @@ contains
       dist = abs(next_star%y - ship%y)
       if (dist <= 1) return
       do i = 1, size(triangle_numbers)
-        if (triangle_numbers(i+1) * triangle_numbers(i) > dist) then
+        if (triangle_numbers(i+1) + triangle_numbers(i) > dist) then
           exit
         end if
       end do
@@ -212,7 +212,7 @@ end module space_m
 program main
   use space_m
   implicit none
-  integer, parameter :: max_steps = 1000000
+  integer, parameter :: max_steps = 100000000
   type(star_t), allocatable :: stars(:)
   type(ship_t) :: ship
   integer(1), allocatable :: steps(:)
