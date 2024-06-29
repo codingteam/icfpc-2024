@@ -169,9 +169,12 @@ unchecked = maxBound
 obstacle :: Mark
 obstacle = maxBound-1
 
-waveIteration :: Mark -> Grid16 -> Grid16
-waveIteration startMark prevWaves =
-    let startIdxs = findGridIndices startMark prevWaves
+waveIteration :: Mark -> Grid16 -> Maybe [Position] -> (Grid16, [Position])
+waveIteration startMark prevWaves mbIdxs =
+    let startIdxs =
+            case mbIdxs of
+                Just idxs -> idxs
+                Nothing -> findGridIndices startMark prevWaves
         nextIdxs = H.toList $ H.fromList $ concatMap checkNeighbours startIdxs
         waves' = prevWaves // [(i, startMark+1) | i <- nextIdxs]
         checkNeighbours i = mapMaybe check [U, R, D, L]
@@ -181,7 +184,7 @@ waveIteration startMark prevWaves =
                     in case prevWaves !? i' of
                         Just x | x == unchecked -> Just i'
                         _ -> Nothing
-    in  waves'
+    in  (waves', nextIdxs)
 
 hasUnchecked :: Grid16 -> Bool
 hasUnchecked grid = not $ null $ findGridIndices unchecked grid
@@ -200,12 +203,12 @@ initWave grid start =
 makeWave :: Grid -> Cell -> Grid16
 makeWave grid start =
     let waves = initWave grid start
-        loop mark waves =
-            let waves' = waveIteration mark waves
+        loop mark mbIdxs waves =
+            let (waves', nextIdxs) = waveIteration mark waves mbIdxs
             in  if hasUnchecked waves'
-                    then loop (mark+1) waves'
+                    then loop (mark+1) (Just nextIdxs) waves'
                     else waves'
-    in  loop 0 waves
+    in  loop 0 Nothing waves
 
 getDistance :: Position -> Direction -> Grid16 -> Value
 getDistance pos dir distances =
