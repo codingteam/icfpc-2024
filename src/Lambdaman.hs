@@ -25,6 +25,7 @@ import Data.Word
 -- Wall = 2
 type Cell = Word8
 
+emptyCell, pillCell, wallCell :: Cell
 emptyCell = 0
 pillCell = 1
 wallCell = 2
