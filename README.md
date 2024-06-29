@@ -25,7 +25,7 @@ $ stack run icfpc-y2024-exe [args]
 where `args` are:
 - `http <request>` will perform a HTTP request, e.g. `http "get index"`;
 - `http-all` will download all known resources.
-- `upload problem path` will upload solution for the problem, e.g. `upload lambdaman1 data/lambdaman/lambdaman1.sol`
+- `upload <problem> <path>` will upload solution for the problem, e.g. `upload lambdaman1 data/lambdaman/lambdaman1.sol`
 
 Testing
 -------
