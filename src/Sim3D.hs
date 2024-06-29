@@ -174,14 +174,14 @@ applyUpdates :: Board -> [Update] -> Board
 applyUpdates board updates =
     let updateMap = M.fromList $ map (\(x, y, cell) -> ((x, y), cell)) updates
         newCells = M.union updateMap $ cells board in
-    board { cells = newCells }      
+    board { cells = newCells }
 
 -- Brings the whole board back into coordinate (0, 0), clean up Empty cells
 normalize :: Board -> Board
 normalize board =
     let filteredCells = M.filter (/= Empty) $ cells board
         minX = if null filteredCells then 0 else minimum $ map fst $ M.keys filteredCells
-        minY = if null filteredCells then 0 else minimum $ map snd $ M.keys filteredCells 
+        minY = if null filteredCells then 0 else minimum $ map snd $ M.keys filteredCells
         maxX = if null filteredCells then 0 else maximum $ map fst $ M.keys filteredCells
         maxY = if null filteredCells then 0 else maximum $ map snd $ M.keys filteredCells
         shiftX = -minX
@@ -190,4 +190,4 @@ normalize board =
         newMin = (0, 0)
         newMax = (maxX + shiftX, maxY + shiftY) in
     board { cells = newCells, minCoords = newMin, maxCoords = newMax }
-    
+
