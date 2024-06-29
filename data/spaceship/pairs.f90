@@ -67,9 +67,11 @@ program main
   type(star_t), allocatable :: stars(:)
   type(star_t) :: ship
   integer :: istar
+  integer :: task_id
   ship%x = 0
   ship%y = 0
-  stars = load_stars(4)
+  read(*,*) task_id
+  stars = load_stars(task_id)
   call initial_pairs(ship, stars)
   do istar = 1, size(stars)
     call print_pairs(stars, istar)
