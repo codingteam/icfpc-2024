@@ -29,9 +29,9 @@ The following levels are available:
 * [spaceship20] Best score: 2394.
 * [spaceship21] Best score: 2437.
 * [spaceship22] Best score: 1269.
-* [spaceship23] Best score: 171102.
-* [spaceship24] Best score: 631912.
-* [spaceship25] Best score: 670955.
+* [spaceship23] Best score: 169651.
+* [spaceship24] Best score: 630010.
+* [spaceship25] Best score: 620638.
 
 To submit a solution, send an ICFP expression that evaluates to:
 

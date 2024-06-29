@@ -44,10 +44,11 @@ performRequest bodyToSend = do
 
 allKnownData :: [String]
 allKnownData = []
-    ++ ["index", "echo", "scoreboard", "lambdaman", "spaceship", "language_test", "3d"]
+    ++ ["index", "echo", "scoreboard", "lambdaman", "spaceship", "language_test", "3d", "efficiency", "3d-example"]
     ++ ["lambdaman" ++ show n | n <- [1..21] :: [Int]]
     ++ ["spaceship" ++ show n | n <- [1..25] :: [Int]]
     ++ ["3d" ++ show n | n <- [1..12] :: [Int]]
+    ++ ["efficiency" ++ show n | n <- [1..13] :: [Int]]
 
 outDir :: String
 outDir = "data"
