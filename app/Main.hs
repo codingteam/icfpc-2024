@@ -2,6 +2,8 @@ module Main (main) where
 
 import HttpRequests (performRequest, performDownloadAllKnown)
 import System.Environment
+import Data.Foldable (minimumBy)
+import Data.Ord (comparing)
 
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
@@ -65,9 +67,13 @@ main = do
           Left err -> putStrLn $ "Failed to parse the file: " <> err
 
     ["http-lambdaman-solution-using-bitcoding", problem_no, solution] -> do
-        let packed = toSelfExtractingBitcode $ T.pack solution
-            program = Concat (Str $ "solve lambdaman" <> (T.pack problem_no) <> " ") packed
-        performRequest $ astToGalaxy program
+        let packed = T.pack solution
+            compressed = toSelfExtractingBitcode packed
+            instruction = "solve lambdaman" <> (T.pack problem_no) <> " "
+            program = Concat (Str instruction) compressed
+            verbatimProgram = instruction <> packed
+            galaxy = minimumBy (comparing T.length) [astToGalaxy program, textToGalaxy verbatimProgram]
+        performRequest galaxy
 
     ["http-all"] -> performDownloadAllKnown
 
