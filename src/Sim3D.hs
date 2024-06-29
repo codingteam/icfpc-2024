@@ -25,6 +25,8 @@ data Cell =
     | InputB
     deriving (Eq, Show)
 
+-- Row-major order: outer vector is indexed by rows, inner vector is indexed by
+-- column
 type Board = V.Vector (V.Vector Cell)
 
 isNumber :: DT.Text -> Bool
