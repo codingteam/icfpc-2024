@@ -126,6 +126,7 @@ evalStep step !p =
         Just 2 -> p
         Just 1 -> p {pGrid = pGrid p // [(pos', emptyCell)], pPosition = pos', pNPills = pNPills p - 1}
         Just 0 -> p {pGrid = pGrid p // [(pos', emptyCell)], pPosition = pos'}
+        Just x -> error $ "BUG: impossible cell value " ++ show x
 
 evalPath :: Path -> Problem
 evalPath path = foldr evalStep (ptOriginal path) (ptSteps path)
@@ -283,8 +284,8 @@ chunksOf n lst = take n lst : chunksOf n (drop n lst)
 
 decodeProblem :: [String] -> Problem
 decodeProblem fileLines =
-    let Just originY = findIndex ('L' `elem`) fileLines
-        Just originX = elemIndex 'L' $ fileLines !! originY
+    let originY = fromJust $ findIndex ('L' `elem`) fileLines
+        originX = fromJust $ elemIndex 'L' $ fileLines !! originY
         sizeY = length fileLines
         sizeX = length (head fileLines)
 
@@ -292,6 +293,7 @@ decodeProblem fileLines =
         decodeChar 'L' = emptyCell
         decodeChar '#' = wallCell
         decodeChar '.' = pillCell
+        decodeChar c = error $ "BUG: unknown lambdaman map character \"" ++ [c] ++ "\""
 
         lines' = concatMap (map decodeChar) fileLines
         cellIndices :: [Position]
