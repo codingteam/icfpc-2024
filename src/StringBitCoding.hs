@@ -59,17 +59,9 @@ bitcodeDecompressor = Apply yCombinator recursiveDecompressor
             )
 
         decodeChar =
-            (Lambda 1 -- variable 1 is the current remainder
-                (If
-                    (Equals (Var 1) (Number 1))
-                    (Str "U")
-                    (If
-                        (Equals (Var 1) (Number 2))
-                        (Str "D")
-                        (If
-                            (Equals (Var 1) (Number 3))
-                            (Str "L")
-                            (Str "R")))))
+          Lambda 1 -- the current remainder
+          (Drop (Sub (Var 1) (Number 1))
+            (Take (Var 1) (Str "UDLR")))
 
 yCombinator :: AST
 yCombinator = Lambda 0 (Apply (Lambda 1 (Apply (Var 0) (Apply (Var 1) (Var 1)))) (Lambda 2 (Apply (Var 0) (Apply (Var 2) (Var 2)))))
