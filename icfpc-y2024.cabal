@@ -31,6 +31,7 @@ library
       Parser
       Printer
       StringBitCoding
+      Sim3D
       Strings
   other-modules:
       Paths_icfpc_y2024
@@ -53,6 +54,7 @@ library
     , pqueue
     , pretty-simple
     , text
+    , vector
     , unordered-containers
   default-language: Haskell2010
 
@@ -80,6 +82,7 @@ executable icfpc-y2024-exe
     , pretty-simple
     , text
     , unordered-containers
+    , vector
   default-language: Haskell2010
 
 test-suite icfpc-y2024-test
@@ -112,5 +115,6 @@ test-suite icfpc-y2024-test
     , tasty-hunit
     , tasty-quickcheck
     , text >=2.0.2
+    , vector
     , unordered-containers
   default-language: Haskell2010

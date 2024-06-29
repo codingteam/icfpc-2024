@@ -27,6 +27,7 @@ dependencies:
 - http-conduit
 - megaparsec >= 9.5.0
 - pretty-simple
+- vector
 - array
 - hashable
 - pqueue

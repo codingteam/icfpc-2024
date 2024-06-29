@@ -14,11 +14,12 @@ import Strings
 import Parser
 import AST
 import Printer
+import qualified Sim3D
 import StringBitCoding
 import Lambdaman
 
 printHelp :: IO ()
-printHelp = putStrLn "Possible args:\n - http <request>\n- http-all"
+printHelp = putStrLn "Possible args:\n - http <request>\n- http-all\n- sim3d <solpath> <a> <b>"
 
 main :: IO ()
 main = do
@@ -96,5 +97,7 @@ main = do
     ["test-3d", a, b, path] -> do
         txt <- TIO.readFile path
         performRequest $ textToGalaxy $ "test 3d " <> (T.pack a) <> " " <> (T.pack b) <> "\n" <> txt
+
+    ["sim3d", board, a, b] -> Sim3D.simulate board (read a, read b)
 
     _ -> printHelp
