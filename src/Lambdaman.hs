@@ -32,7 +32,7 @@ data Problem = Problem {
   deriving (Eq, Show, Generic)
 
 instance Hashable (Array (Int,Int) Cell) where
-    hashWithSalt salt a = foldr (flip hashWithSalt) salt a
+    hashWithSalt salt a = foldr (flip hashWithSalt) salt $ map fst $ filter (\(_i, e) -> e == Pill) $ A.assocs a
 
 instance Hashable Problem where
     hashWithSalt salt p =
