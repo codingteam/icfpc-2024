@@ -26,13 +26,15 @@ data Cell =
     | InputB
     deriving (Eq, Show)
 
+type Position = (Integer, Integer)
+
 data Board = Board {
-    cells :: M.Map (Integer, Integer) Cell,
+    cells :: M.Map Position Cell,
     minCoords :: (Integer, Integer),
     maxCoords :: (Integer, Integer)
 } deriving (Eq, Show)
 
-getCell :: Board -> (Integer, Integer) -> Cell
+getCell :: Board -> Position -> Cell
 getCell board coords = M.findWithDefault Empty coords $ cells board
 
 isNumber :: DT.Text -> Bool
@@ -170,12 +172,12 @@ simulateStep = do
     updateCells
     moveNextToCurrent
 
-readAt :: (Integer, Integer) -> Sim3dM Cell
+readAt :: Position -> Sim3dM Cell
 readAt pos = do
     board <- gets s3dsCurBoard
     pure $ getCell board pos
 
-writeTo :: (Integer, Integer) -> Cell -> Sim3dM ()
+writeTo :: Position -> Cell -> Sim3dM ()
 writeTo pos value = do
     let update = M.singleton pos value
     board <- gets s3dsNextBoard
@@ -183,7 +185,7 @@ writeTo pos value = do
     let newBoard = board { cells = newCells }
     modify' $ \s -> s { s3dsNextBoard = newBoard }
 
-moveCell :: (Integer, Integer) -> (Integer, Integer) -> Sim3dM ()
+moveCell :: Position -> Position -> Sim3dM ()
 moveCell from to = do
     cell <- readAt from
     writeTo to cell
@@ -200,7 +202,7 @@ updateCells = do
     board <- gets s3dsCurBoard
     mapM_ updateCell (M.keys $ cells board)
 
-updateCell :: (Integer, Integer) -> Sim3dM ()
+updateCell :: Position -> Sim3dM ()
 updateCell pos@(x, y) = do
     cell <- readAt pos
     case cell of
@@ -217,7 +219,7 @@ updateCell pos@(x, y) = do
         Empty -> pure ()
         _ -> pure () -- TODO: implement actions for the other cells
 
-performArithmetic :: (Integer -> Integer -> Integer) -> (Integer, Integer) -> Sim3dM ()
+performArithmetic :: (Integer -> Integer -> Integer) -> Position -> Sim3dM ()
 performArithmetic op (x, y) = do
     v1 <- readAt (x - 1, y    )
     v2 <- readAt (x    , y - 1)
