@@ -60,6 +60,7 @@ readCell "#" = NotEqual
 readCell "S" = OutputS
 readCell "A" = InputA
 readCell "B" = InputB
+readCell cell = error $ DT.unpack $ "Unknown cell type \"" <> cell <> "\""
 
 boardFromList :: [[Cell]] -> Board
 boardFromList cells =
