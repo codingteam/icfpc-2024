@@ -6,12 +6,15 @@ module StringBitCoding (
 ,   spaceshipAlphabet
 ,   repeater, gRepeat
 ,   makeRecursion
+,   rleEncode
 ) where
 
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
 
 import AST
+import Strings (textFromGalaxy)
+import Lib (printNumber)
 
 lambdamanAlphabet, spaceshipAlphabet :: T.Text
 lambdamanAlphabet = "UDLR"
@@ -95,4 +98,33 @@ gRepeat n x =
 
 makeRecursion :: AST -> AST
 makeRecursion x = Apply yCombinator x
+
+rleDecoder :: AST
+rleDecoder =
+    makeRecursion $ 0 --> 1 --> If (Var 1 =~ "") "" $ ((repeater $$ Take 1 (Var 1)) $$ StrToInt (Take 1 (Drop 1 (Var 1)))) >< (Var 0 $$ Drop 2 (Var 1))
+
+rleParseString :: T.Text -> [(Integer, Char)]
+rleParseString t =
+    case T.uncons t of
+        Nothing -> []
+        Just (c, rest) -> reverse $ go 0 c [] rest
+    where
+        go n p done text =
+            case T.uncons text of
+                Nothing -> (n+1, p) : done
+                Just (c, rest)
+                    | p == c ->
+                        if n <= 94-3
+                            then go (n+1) p done rest
+                            else go 0 c ((n+1, p):done) rest
+                    | otherwise -> go 0 c ((n+1, p):done) rest
+
+rleEncodeString :: T.Text -> T.Text
+rleEncodeString text =
+    let rle = rleParseString text
+        encodePair (n, c) = T.singleton c <> (textFromGalaxy $ printNumber n)
+    in  T.concat $ map encodePair rle
+
+rleEncode :: T.Text -> AST
+rleEncode text = rleDecoder $$ Str $ rleEncodeString text
 
