@@ -81,11 +81,16 @@ main = do
 
     ["http-lambdaman-solution-using-bitcoding", problem_no, solution] -> do
         let packed = T.pack solution
-            compressed = toSelfExtractingBitcode lambdamanAlphabet packed
-            instruction = "solve lambdaman" <> (T.pack problem_no) <> " "
-            program = Concat (Str instruction) compressed
+            bitcodeCompressed = toSelfExtractingBitcode lambdamanAlphabet packed
+            rleCompressed = rleEncode packed
+            instruction = "solve lambdaman" <> T.pack problem_no <> " "
+            bitcodeProgram = Concat (Str instruction) bitcodeCompressed
+            rleProgram = Concat (Str instruction) rleCompressed
             verbatimProgram = instruction <> packed
-            galaxy = minimumBy (comparing T.length) [astToGalaxy program, textToGalaxy verbatimProgram]
+            galaxy = minimumBy (comparing T.length) [
+                        astToGalaxy bitcodeProgram,
+                        astToGalaxy rleProgram,
+                        textToGalaxy verbatimProgram]
         performRequest galaxy
 
     ["http-all"] -> performDownloadAllKnown
