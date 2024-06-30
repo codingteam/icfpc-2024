@@ -21,6 +21,7 @@ import Control.Monad.Except
 import Control.Monad.State
 import Data.Either
 import Data.List (transpose)
+import Data.Maybe
 import System.Console.ANSI
 
 data Cell =
@@ -159,6 +160,12 @@ data Sim3dState = Sim3dState {
 ,   s3dsTime :: Integer --- ^ Current time (starts at 1)
 ,   s3dsPreviousBoards :: [Board] --- ^ Stack of previous board states. The top (first list element) is the most recent state.
 ,   s3dsOutput :: Cell --- ^ The result of the computation. The simulation terminates when this field becomes non-`Empty`.
+,   s3dsWarpSettings :: Maybe WarpSettings --- ^ Parameters of the warp which should happen at the end of the tick. `Nothing` means that we shouldn't warp at the end of the current tick.
+}
+
+data WarpSettings = WarpSettings {
+    wsDt :: Integer --- ^ How far back into the past to jump.
+,   wsUpdates :: [(Position, Cell)] --- ^ Board updates to perform after the time warp.
 }
 
 stateFromBoard :: Board -> Sim3dState
@@ -169,6 +176,7 @@ stateFromBoard board =
     ,   s3dsTime = 1
     ,   s3dsPreviousBoards = []
     ,   s3dsOutput = Empty
+    ,   s3dsWarpSettings = Nothing
     }
 
 type Sim3dError = DT.Text
@@ -195,6 +203,10 @@ isGameOver = do
 simulateStep :: Sim3dM Cell
 simulateStep = do
     updateCells
+
+    warpSettings <- gets s3dsWarpSettings
+    when (isJust warpSettings) warpTime
+
     moveNextToCurrent
     modify' $ \s -> s { s3dsTime = 1 + s3dsTime s }
     gets s3dsOutput
@@ -292,7 +304,23 @@ updateCell pos@(x, y) = do
         Multiply -> performArithmetic (*) pos
         Divide -> performArithmetic quot pos
         Modulo -> performArithmetic rem pos
-        TimeWarp -> warpTime pos
+        TimeWarp -> do
+            value <- readAt (x, y-1)
+            dx' <- readAt (x-1, y)
+            dy' <- readAt (x+1, y)
+            dt' <- readAt (x, y+1)
+            when (value /= Empty) $ do
+              case (dx', dy', dt') of
+                  (Value dx, Value dy, Value dt) -> do
+                      when (dt < 1) $
+                          sim3dThrowError $ "Error: attempted to warp time with dt="
+                              <> DT.pack (show dt) <> " < 1"
+                      curTime <- gets s3dsTime
+                      when (dt >= curTime) $
+                          sim3dThrowError $ "Error: attempted to warp time with dt="
+                              <> DT.pack (show dt) <> " >= current time"
+                      updateWarpSettings dt (x-dx, y-dy) value
+                  _ -> pure ()
         Equal -> performComparison (==) pos
         NotEqual -> performComparison (/=) pos
         Value _ -> pure ()
@@ -327,30 +355,42 @@ performComparison cmp (x, y) = do
         moveValue (x-1, y) (x+1, y)
         moveValue (x, y-1) (x, y+1)
 
-warpTime :: Position -> Sim3dM ()
-warpTime (x, y) = do
-    v <- readAt (x, y-1)
-    dx' <- readAt (x-1, y)
-    dy' <- readAt (x+1, y)
-    dt' <- readAt (x, y+1)
-    when (v /= Empty) $ do
-      case (dx', dy', dt') of
-          (Value dx, Value dy, Value dt) -> do
-              when (dt < 1) $
-                  sim3dThrowError $ "Error: attempted to warp time with dt="
-                      <> DT.pack (show dt) <> " < 1"
-              curTime <- gets s3dsTime
-              when (dt >= curTime) $
-                  sim3dThrowError $ "Error: attempted to warp time with dt="
-                      <> DT.pack (show dt) <> " >= current time"
-              prevBoards <- gets s3dsPreviousBoards
-              let board = head $ drop (fromIntegral $ dt - 1) prevBoards
-              let update = M.singleton (x-dx, y-dy) v
-              let updatedBoard = normalize $ board { cells = M.union update (cells board) }
-              -- TODO: check for interactions between multiple warp operators
-              modify $ \s -> s { s3dsNextBoard = updatedBoard }
-              modify $ \s -> s { s3dsPreviousBoards = drop (fromIntegral dt) prevBoards }
-          _ -> pure ()
+warpTime :: Sim3dM ()
+warpTime = do
+    maybeSettings <- gets s3dsWarpSettings
+    case maybeSettings of
+        Nothing -> pure ()
+        Just settings -> do
+            prevBoards <- gets s3dsPreviousBoards
+            let dt = wsDt settings
+            board <- case drop (fromIntegral $ dt - 1) prevBoards of
+                (b:_) -> pure b
+                [] -> do
+                    sim3dThrowError $ "Error: attempted to warp by " <>
+                        DT.pack (show dt) <> " turns, but we only remember the previous "
+                        <> DT.pack (show $ length prevBoards) <> " turns"
+                    pure undefined -- unreachable, but makes the type checker happy
+            let updates = M.fromList $ wsUpdates settings
+            let updatedBoard = normalize $ board { cells = M.union updates (cells board) }
+            modify $ \s -> s { s3dsNextBoard = updatedBoard }
+            modify $ \s -> s { s3dsPreviousBoards = drop (fromIntegral dt) prevBoards }
+            modify $ \s -> s { s3dsWarpSettings = Nothing }
+
+updateWarpSettings :: Integer -> Position -> Cell -> Sim3dM ()
+updateWarpSettings dt pos value = do
+    curSettings <- gets s3dsWarpSettings
+    newSettings <- case curSettings of
+        Nothing -> pure $ WarpSettings { wsDt = dt, wsUpdates = [(pos, value)] }
+        Just settings -> do
+            if wsDt settings /= dt
+                then do
+                    sim3dThrowError $
+                        "Error: trying to warp by " <> DT.pack (show dt) <>
+                        " when a warp of " <> DT.pack (show $ wsDt settings)
+                        <> " is already scheduled"
+                    pure undefined -- unreachable, but makes the type checker happy
+                else pure $ settings { wsUpdates = (pos, value):(wsUpdates settings) }
+    modify $ \s -> s { s3dsWarpSettings = Just newSettings }
 
 sim3dThrowError :: DT.Text -> Sim3dM ()
 sim3dThrowError msg = do
