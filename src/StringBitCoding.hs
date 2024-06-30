@@ -5,6 +5,8 @@ module StringBitCoding (
 ,   lambdamanAlphabet
 ,   spaceshipAlphabet
 ,   makeRecursion
+,   rleDecoder
+,   rleEncodeString
 ,   rleEncode
 ) where
 
@@ -120,7 +122,7 @@ rleParseString t =
                 Nothing -> (n+1, p) : done
                 Just (c, rest)
                     | p == c ->
-                        if n <= 94-3
+                        if n <= 94-5
                             then go (n+1) p done rest
                             else go 0 c ((n+1, p):done) rest
                     | otherwise -> go 0 c ((n+1, p):done) rest
