@@ -139,11 +139,13 @@ doSimulation s3dState checkGameOver = do
     case s3dsPreviousBoards s3dState of
         (prevBoard:_) -> printBoardDiff prevBoard board
         _ -> printBoard board
-    let gameOver =
-            let result = evalSimulation isGameOver s3dState
-            in isLeft result || (result == Right True)
-    if checkGameOver && gameOver then
+    let result = evalSimulation (gets s3dsOutput) s3dState
+    let gameOver = isLeft result || (result /= Right Empty)
+    if checkGameOver && gameOver then do
         putStrLn "Game over!"
+        case result of
+            Left err -> DTI.putStrLn $ "The game ended: " <> err
+            Right output -> DTI.putStrLn $ "The game ended: " <> DT.pack (show output)
     else do
         putStrLn "Press enter to continue."
         _ <- getLine
