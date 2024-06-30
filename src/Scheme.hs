@@ -1,4 +1,6 @@
-module Scheme where
+module Scheme (
+    toScheme
+) where
 
 import qualified Data.Text as T
 
