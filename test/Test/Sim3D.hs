@@ -15,6 +15,7 @@ sim3DTests = testGroup "Sim3D"
     ,   comparisonTests
     ,   crashTests
     ,   timeWarpTests
+    ,   outputTests
     ]
 
 doStep :: Board -> Either Sim3dError Board
@@ -86,6 +87,10 @@ crashTests = testGroup "Sim3D.crash"
             doStep (parseBoard "1 > . < 2")
             @?=
             Left "[T 1] Error: trying to overwrite previously written value of \"Value 1\" with \"Value 2\" at (2,0)"
+    ,   testCase "Submitting different values is not okay" $
+            doStep (parseBoard "3 > S < 4")
+            @?=
+            Left "[T 1] Error: trying to submit \"Value 4\" when \"Value 3\" is already submitted"
     ,   testCase "Writing the same value multiple times is fine" $
             doStep (parseBoard "1 > . < 1") @?= Right (parseBoard ". > 1 < .")
     ]
@@ -99,4 +104,20 @@ timeWarpTests = testGroup "Sim3D.timeWarp"
             (fmap s3dsCurBoard step1) @?= Right (parseBoard ". > 2 .\n. 2 @ 0\n. . 1 .")
             let step2 = runStep (fromRight step1)
             (fmap s3dsCurBoard step2) @?= Right (parseBoard "2 > . .\n2 2 @ 0\n. . 1 .")
+    ]
+
+outputTests :: TestTree
+outputTests = testGroup "Sim3D.output"
+    [
+        testCase "Submitting a value terminates the simulation" $ do
+            let initialBoard = parseBoard "S < . < 42"
+            let step1 = runStep (stateFromBoard initialBoard)
+            (fmap s3dsCurBoard step1) @?= Right (parseBoard "S < 42 < .")
+            (fmap s3dsOutput step1) @?= Right Empty
+            let step2 = runStep (fromRight step1)
+            (fmap s3dsOutput step2) @?= Right (Value 42)
+    ,   testCase "Submitting the same value twice is okay" $ do
+            let initialBoard = parseBoard "7 > S < 7"
+            let step = runStep (stateFromBoard initialBoard)
+            (fmap s3dsOutput step) @?= Right (Value 7)
     ]
