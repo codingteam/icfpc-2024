@@ -133,4 +133,10 @@ main = do
     ["efficiency7"] -> putStrLn $ toSATString efficiency7Condition
     ["efficiency12", num] -> putStrLn $ show $ efficiency12 $ read num
 
+    ["satizate", file] -> do
+      txt <- TIO.readFile file
+      let variableLine = head $ drop 1 $ T.lines txt
+      let inputs = map (read . T.unpack) $ T.words variableLine
+      putStrLn $ show $ readSATInput 0 inputs
+
     _ -> printHelp

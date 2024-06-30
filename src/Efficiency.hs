@@ -2,13 +2,15 @@ module Efficiency (
     efficiency7Condition,
     efficiency12,
     toCondString,
-    toSATString
+    toSATString,
+    readSATInput
 ) where
 
 import Data.Function (fix)
 import Data.Set (Set)
 import qualified Data.Set as Set
 import AST
+import qualified Data.Bits as Bits 
 
 efficiency7Condition =
   ( And
@@ -1310,7 +1312,7 @@ constructClause _ u = error $ "Don't know how to construct clause from: " ++ sho
 
 printSATDefinition :: Integer -> [SATClause] -> String
 printSATDefinition variables clauses =
-    "p cnf " ++ (show variables) ++ " " ++ (show $ length $ clauses) ++ " 0"
+    "p cnf " ++ (show variables) ++ " " ++ (show $ length $ clauses)
 
 printClauses :: [SATClause] -> String
 printClauses clauses =
@@ -1322,3 +1324,9 @@ printClause clause =
 
 printSATVariable (Positive n) = show n ++ " "
 printSATVariable (Negative n) = "-" ++ show n ++ " "
+
+readSATInput :: Integer -> [Int] -> Integer
+readSATInput x [0] = x
+readSATInput x (bit:rest) | bit > 0 = readSATInput (x + (1 `Bits.shiftL` (bit - 1))) rest
+readSATInput x (bit:rest) | bit < 0 = readSATInput (x) rest -- ignore
+readSATInput _ other = error $ "WTF? " ++ show other 
