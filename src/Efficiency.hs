@@ -1,10 +1,13 @@
 module Efficiency (
     efficiency7Condition,
     efficiency12,
-    toCondString
+    toCondString,
+    toSATString
 ) where
 
 import Data.Function (fix)
+import Data.Set (Set)
+import qualified Data.Set as Set
 import AST
 
 efficiency7Condition =
@@ -1278,3 +1281,44 @@ toCondString(Var n) = "b" ++ show (n - 1)
 toCondString(Not x) = "!" ++ toCondString x
 toCondString(Or x y) = "(" ++ toCondString x ++ ") || (" ++ toCondString y ++ ")"
 toCondString(And x y)= "(" ++ toCondString x ++ ") && (" ++ toCondString y ++ ")"
+
+toSATString :: AST -> String
+toSATString ast =
+    let variables = calculateVariables 0 ast
+        clauses = collectClauses [] ast in
+    (printSATDefinition variables clauses) ++ "\n" ++ (printClauses clauses)
+
+calculateVariables :: Integer -> AST -> Integer
+calculateVariables x (Var n) = max n x
+calculateVariables x (And a b) = max (max x (calculateVariables x a)) $ calculateVariables x b
+calculateVariables x (Or a b) = max (max x (calculateVariables x a)) $ calculateVariables x b
+calculateVariables x (Not a) = calculateVariables x a
+calculateVariables _ u = error $ "Unknown expression: " ++ show u
+
+data SATVariable = Positive Integer | Negative Integer deriving (Eq, Show)
+type SATClause = [SATVariable]
+
+collectClauses :: [SATClause] -> AST -> [SATClause]
+collectClauses clauses (And x y) = clauses ++ (collectClauses [] x) ++ (collectClauses [] y)
+collectClauses clauses v = constructClause [] v : clauses 
+
+constructClause :: [SATVariable] -> AST -> SATClause
+constructClause clause (Var x) = clause ++ [Positive x] 
+constructClause clause (Not (Var x)) = clause ++ [Negative x] 
+constructClause clause (Or x y) = clause ++ (constructClause [] x) ++ (constructClause [] y)   
+constructClause _ u = error $ "Don't know how to construct clause from: " ++ show u
+
+printSATDefinition :: Integer -> [SATClause] -> String
+printSATDefinition variables clauses =
+    "p cnf " ++ (show variables) ++ " " ++ (show $ length $ clauses) ++ " 0"
+
+printClauses :: [SATClause] -> String
+printClauses clauses =
+    concat $ map printClause clauses
+
+printClause :: SATClause -> String
+printClause clause =
+    (concat $ map printSATVariable clause) ++ "0\n"
+
+printSATVariable (Positive n) = show n ++ " "
+printSATVariable (Negative n) = "-" ++ show n ++ " "

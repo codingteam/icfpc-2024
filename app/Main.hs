@@ -130,7 +130,7 @@ main = do
 
     ["sim3d", board, a, b] -> Sim3D.simulate board (read a, read b)
 
-    ["efficiency7"] -> putStrLn $ toCondString efficiency7Condition
+    ["efficiency7"] -> putStrLn $ toSATString efficiency7Condition
     ["efficiency12", num] -> putStrLn $ show $ efficiency12 $ read num
 
     _ -> printHelp
