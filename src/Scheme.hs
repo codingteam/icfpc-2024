@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Scheme where
 
 import qualified Data.Text as T
