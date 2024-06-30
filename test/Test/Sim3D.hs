@@ -68,6 +68,10 @@ comparisonTests = testGroup "Sim3D.comparison"
 crashTests :: TestTree
 crashTests = testGroup "Sim3D.crash"
     [
-        testCase "Crash 1" $ doStep (parseBoard "1 > . < 2") @?= Right (parseBoard "1 > CRASH < 2")
-    ,   testCase "Crash 2" $ doStep (parseBoard "1 > . < 1") @?= Right (parseBoard "1 > CRASH < 1")
+        testCase "Crash 1" $
+            doStep (parseBoard "1 > . < 2")
+            @?=
+            Left "Error: trying to overwrite previously written value of \"Value 1\" with \"Value 2\" at (2,0)"
+    ,   testCase "Writing the same value multiple times is fine" $
+            doStep (parseBoard "1 > . < 1") @?= Right (parseBoard ". > 1 < .")
     ]

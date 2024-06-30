@@ -179,8 +179,32 @@ readAt pos = do
     board <- gets s3dsCurBoard
     pure $ getCell board pos
 
+readNextBoardAt :: Position -> Sim3dM Cell
+readNextBoardAt pos = do
+    board <- gets s3dsNextBoard
+    pure $ getCell board pos
+
+ensureWriteIsAllowed :: Position -> Cell -> Sim3dM ()
+ensureWriteIsAllowed pos value = do
+    currentValue <- readAt pos
+    nextValue <- readNextBoardAt pos
+
+    -- we haven't written to this cell on this tick yet
+    let isFirstWrite = currentValue == nextValue
+    -- we're writing the same value that's already in the cell
+    let overwriteWithSame = nextValue == value
+
+    when (not isFirstWrite && not overwriteWithSame) $ do
+        let fPos = DT.pack $ show pos
+        let fValue = DT.pack $ show value
+        let fNextValue = DT.pack $ show nextValue
+        throwError $
+            "Error: trying to overwrite previously written value of \""
+            <> fNextValue <> "\" with \"" <> fValue <> "\" at " <> fPos
+
 writeTo :: Position -> Cell -> Sim3dM ()
 writeTo pos value = do
+    ensureWriteIsAllowed pos value
     let update = M.singleton pos value
     board <- gets s3dsNextBoard
     let newCells = M.union update (cells board)
