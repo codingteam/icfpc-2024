@@ -123,15 +123,15 @@ simulate boardPath inputs = do
             in isLeft result || (result == Right True)
     if isAlreadyOver then do
         putStrLn "I cannot see the goal on the initial board. This game will never end."
-        doSimulation board' False
+        doSimulation s3dState False
     else
-        doSimulation board' True
+        doSimulation s3dState True
 
-doSimulation :: Board -> Bool -> IO ()
-doSimulation board checkGameOver = do
+doSimulation :: Sim3dState -> Bool -> IO ()
+doSimulation s3dState checkGameOver = do
+    let board = s3dsCurBoard s3dState
     printBoard board
-    let s3dState = stateFromBoard board
-        gameOver =
+    let gameOver =
             let result = evalSimulation isGameOver s3dState
             in isLeft result || (result == Right True)
     if checkGameOver && gameOver then
@@ -141,7 +141,7 @@ doSimulation board checkGameOver = do
         _ <- getLine
         case execSimulation simulateStep s3dState of
             Left err -> DTI.putStrLn $ "The game ended: " <> err
-            Right s -> doSimulation (s3dsCurBoard s) checkGameOver
+            Right s -> doSimulation s checkGameOver
 
 data Sim3dState = Sim3dState {
     s3dsCurBoard :: Board --- ^ Current state of the board (read-only)
