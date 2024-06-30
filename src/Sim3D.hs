@@ -241,8 +241,6 @@ writeTo pos value = do
             -- FIXME: according to the spec:
             --      6. In every tick, all reads (and removals) happen before all the writes.
             -- However, we do removals with `writeTo _ Empty`. This should be fixed to align with the spec.
-            --
-            -- TODO: implement submitting of answers (by overwriting the OutputS operator)
             modify' $ \s -> s { s3dsNextBoard = newBoard }
 
 storeOutput :: Cell -> Sim3dM ()
