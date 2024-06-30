@@ -2,7 +2,6 @@ module Test.Sim3D (sim3DTests) where
 
 import Test.Tasty
 import Test.Tasty.HUnit
-import Test.Tasty.QuickCheck
 import Control.Monad.State
 
 import Sim3D

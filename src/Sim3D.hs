@@ -1,7 +1,6 @@
 module Sim3D (simulate, simulateStep, parseBoard, Board, stateFromBoard, Sim3dState(..), shiftBy) where
 
 import qualified Data.Char as C
-import qualified Data.Vector as V
 import qualified Data.Text as DT
 import qualified Data.Text.IO as DTI
 import qualified Data.Map as M
