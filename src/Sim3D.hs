@@ -5,6 +5,7 @@ module Sim3D (
 ,   Board
 ,   stateFromBoard
 ,   Sim3dState(..)
+,   Sim3dError
 ,   shiftBy
 ,   execSimulation
 ) where
@@ -14,7 +15,9 @@ import qualified Data.Text as DT
 import qualified Data.Text.IO as DTI
 import qualified Data.Map as M
 import Control.Monad
+import Control.Monad.Except
 import Control.Monad.State
+import Data.Either
 import Data.List (transpose)
 
 data Cell =
@@ -105,14 +108,19 @@ replaceInputs board (a, b) =
     in board { cells = M.map replaceCell $ cells board }
 
 printBoard :: Board -> IO ()
-printBoard board = DTI.putStrLn $ evalSimulation showBoard (stateFromBoard board)
+printBoard board =
+    case evalSimulation showBoard (stateFromBoard board) of
+        Left err -> DTI.putStrLn $ "Error: " <> err
+        Right table -> DTI.putStrLn table
 
 simulate :: String -> Inputs -> IO ()
 simulate boardPath inputs = do
     board <- readBoard boardPath
     let board' = replaceInputs board inputs
         s3dState = stateFromBoard board'
-        isAlreadyOver = evalSimulation isGameOver s3dState
+        isAlreadyOver =
+            let result = evalSimulation isGameOver s3dState
+            in isLeft result || (result == Right True)
     if isAlreadyOver then do
         putStrLn "I cannot see the goal on the initial board. This game will never end."
         doSimulation board' False
@@ -123,14 +131,17 @@ doSimulation :: Board -> Bool -> IO ()
 doSimulation board checkGameOver = do
     printBoard board
     let s3dState = stateFromBoard board
-        gameOver = evalSimulation isGameOver s3dState
+        gameOver =
+            let result = evalSimulation isGameOver s3dState
+            in isLeft result || (result == Right True)
     if checkGameOver && gameOver then
         putStrLn "Game over!"
     else do
         putStrLn "Press enter to continue."
         _ <- getLine
-        let newBoard = s3dsCurBoard $ execSimulation simulateStep s3dState
-        doSimulation newBoard checkGameOver
+        case execSimulation simulateStep s3dState of
+            Left err -> DTI.putStrLn $ "The game ended: " <> err
+            Right s -> doSimulation (s3dsCurBoard s) checkGameOver
 
 data Sim3dState = Sim3dState {
     s3dsCurBoard :: Board --- ^ Current state of the board (read-only)
@@ -144,13 +155,16 @@ stateFromBoard board =
     ,   s3dsNextBoard = board
     }
 
-type Sim3dM a = State Sim3dState a
+type Sim3dError = DT.Text
+type Sim3dM a = StateT Sim3dState (Except Sim3dError) a
 
-execSimulation :: Sim3dM a -> Sim3dState -> Sim3dState
-execSimulation = execState
+execSimulation :: Sim3dM a -> Sim3dState -> Either Sim3dError Sim3dState
+execSimulation action initialState =
+    runExcept $ execStateT action initialState
 
-evalSimulation :: Sim3dM a -> Sim3dState -> a
-evalSimulation = evalState
+evalSimulation :: Sim3dM a -> Sim3dState -> Either Sim3dError a
+evalSimulation action initialState =
+    runExcept $ evalStateT action initialState
 
 isGameOver :: Sim3dM Bool
 isGameOver = pure True
