@@ -4,7 +4,6 @@ module StringBitCoding (
 
 ,   lambdamanAlphabet
 ,   spaceshipAlphabet
-,   repeater, gRepeat
 ,   makeRecursion
 ,   rleEncode
 ) where
@@ -88,20 +87,27 @@ bitcodeDecompressor alphabet = Apply yCombinator recursiveDecompressor
 yCombinator :: AST
 yCombinator = Lambda 0 (Apply (Lambda 1 (Apply (Var 0) (Apply (Var 1) (Var 1)))) (Lambda 2 (Apply (Var 0) (Apply (Var 2) (Var 2)))))
 
-repeater :: AST
-repeater =
-    Apply yCombinator (Lambda 0 (Lambda 1 (Lambda 2 (If (Equals (Var 2) (Number 1)) (Var 1) (Concat (Var 1) (Apply (Apply (Var 0) (Var 1)) (Sub (Var 2) (Number 1))))))))
-
-gRepeat :: Integer -> AST -> AST
-gRepeat n x =
-    Apply (Apply (Apply yCombinator (Lambda 0 (Lambda 1 (Lambda 2 (If (Equals (Var 2) (Number 1)) (Var 1) (Concat (Var 1) (Apply (Apply (Var 0) (Var 1)) (Sub (Var 2) (Number 1))))))))) x) (Number n)
+repeaterY :: AST -> AST
+repeaterY y =
+    Apply y (Lambda 0 (Lambda 1 (Lambda 2 (If (Equals (Var 2) (Number 1)) (Var 1) (Concat (Var 1) (Apply (Apply (Var 0) (Var 1)) (Sub (Var 2) (Number 1))))))))
 
 makeRecursion :: AST -> AST
 makeRecursion x = Apply yCombinator x
 
 rleDecoder :: AST
 rleDecoder =
-    makeRecursion $ 0 --> 1 --> If (Var 1 =~ "") "" $ ((repeater $$ Take 1 (Var 1)) $$ StrToInt (Take 1 (Drop 1 (Var 1)))) >< (Var 0 $$ Drop 2 (Var 1))
+    (7 --> -- Y combinator
+        Var 7 $$
+            0 --> -- self
+                1 --> -- input string
+                    If (Var 1 =~ "")
+                        "" $ -- input string is empty, stop
+                        ((repeaterY (Var 7)
+                            $$ Take 1 (Var 1))
+                            $$ StrToInt (Take 1 (Drop 1 (Var 1))))
+                    -- drop first 2 chars from input string and make recursion step
+                    >< (Var 0 $$ Drop 2 (Var 1))
+    ) $$ yCombinator
 
 rleParseString :: T.Text -> [(Integer, Char)]
 rleParseString t =
