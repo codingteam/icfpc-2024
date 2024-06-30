@@ -16,6 +16,7 @@ import qualified Data.Char as C
 import qualified Data.Text as DT
 import qualified Data.Text.IO as DTI
 import qualified Data.Map as M
+import qualified Data.Set as S
 import Control.Monad
 import Control.Monad.Except
 import Control.Monad.State
@@ -158,7 +159,8 @@ doSimulation s3dState checkGameOver = do
 
 data Sim3dState = Sim3dState {
     s3dsCurBoard :: Board --- ^ Current state of the board (read-only)
-,   s3dsNextBoard :: Board --- ^ Next state of the board (we're updating it)
+,   s3dsRemovals :: S.Set Position --- ^ Cells from which values were removed.
+,   s3dsWrites :: M.Map Position Cell --- ^ What was written at the current tick and where.
 ,   s3dsTime :: Integer --- ^ Current time (starts at 1)
 ,   s3dsPreviousBoards :: [Board] --- ^ Stack of previous board states. The top (first list element) is the most recent state.
 ,   s3dsOutput :: Cell --- ^ The result of the computation. The simulation terminates when this field becomes non-`Empty`.
@@ -174,7 +176,8 @@ stateFromBoard :: Board -> Sim3dState
 stateFromBoard board =
     Sim3dState {
         s3dsCurBoard = board
-    ,   s3dsNextBoard = board
+    ,   s3dsRemovals = S.empty
+    ,   s3dsWrites = M.empty
     ,   s3dsTime = 1
     ,   s3dsPreviousBoards = []
     ,   s3dsOutput = Empty
@@ -209,7 +212,7 @@ simulateStep = do
     warpSettings <- gets s3dsWarpSettings
     when (isJust warpSettings) warpTime
 
-    moveNextToCurrent
+    applyUpdates
     let timeDelta = case warpSettings of
                         Just settings -> - wsDt settings
                         Nothing -> 1
@@ -221,30 +224,30 @@ readAt pos = do
     board <- gets s3dsCurBoard
     pure $ getCell board pos
 
-readNextBoardAt :: Position -> Sim3dM Cell
-readNextBoardAt pos = do
-    board <- gets s3dsNextBoard
-    pure $ getCell board pos
+readWrittenAt :: Position -> Sim3dM (Maybe Cell)
+readWrittenAt pos = do
+    writes <- gets s3dsWrites
+    pure $ pos `M.lookup` writes
 
 ensureWriteIsAllowed :: Position -> Cell -> Sim3dM ()
 ensureWriteIsAllowed pos value = do
     currentValue <- readAt pos
-    nextValue <- readNextBoardAt pos
+    prevWrite <- readWrittenAt pos
+    case prevWrite of
+        Nothing -> pure () -- first write is always allowed
+        Just nextValue -> do
+            -- we can write into an output cell any time; its invariants are checked in `storeOutput`
+            let writingToOutput = currentValue == OutputS
+            -- we're writing the same value that's already in the cell
+            let overwriteWithSame = nextValue == value
 
-    -- we can write into an output cell any time; its invariants are checked in `storeOutput`
-    let isOutput = currentValue == OutputS
-    -- we haven't written to this cell on this tick yet
-    let isFirstWrite = currentValue == nextValue
-    -- we're writing the same value that's already in the cell
-    let overwriteWithSame = nextValue == value
-
-    when (not isOutput && not isFirstWrite && not overwriteWithSame) $ do
-        let fPos = DT.pack $ show pos
-        let fValue = DT.pack $ show value
-        let fNextValue = DT.pack $ show nextValue
-        sim3dThrowError $
-            "Error: trying to overwrite previously written value of \""
-            <> fNextValue <> "\" with \"" <> fValue <> "\" at " <> fPos
+            when (not writingToOutput && not overwriteWithSame) $ do
+                let fPos = DT.pack $ show pos
+                let fValue = DT.pack $ show value
+                let fNextValue = DT.pack $ show nextValue
+                sim3dThrowError $
+                    "Error: trying to overwrite previously written value of \""
+                    <> fNextValue <> "\" with \"" <> fValue <> "\" at " <> fPos
 
 writeTo :: Position -> Cell -> Sim3dM ()
 writeTo pos value = do
@@ -252,12 +255,10 @@ writeTo pos value = do
     currentValue <- readAt pos
     case currentValue of
         OutputS -> storeOutput value
-        _ -> do
-            let update = M.singleton pos value
-            board <- gets s3dsNextBoard
-            let newCells = M.union update (cells board)
-            let newBoard = board { cells = newCells }
-            modify' $ \s -> s { s3dsNextBoard = newBoard }
+        _ -> modify' $ \s -> s { s3dsWrites = M.insert pos value (s3dsWrites s) }
+
+removeAt :: Position -> Sim3dM ()
+removeAt pos = modify' $ \s -> s { s3dsRemovals = S.insert pos (s3dsRemovals s) }
 
 storeOutput :: Cell -> Sim3dM ()
 storeOutput result = do
@@ -273,20 +274,23 @@ storeOutput result = do
 moveValue :: Position -> Position -> Sim3dM ()
 moveValue from to = do
     cell <- readAt from
-    if cell /= Empty then do
+    when (cell /= Empty) $ do
+        removeAt from
         writeTo to cell
-        writeTo from Empty
-    else
-        pure ()
 
-moveNextToCurrent :: Sim3dM ()
-moveNextToCurrent = do
+applyUpdates :: Sim3dM ()
+applyUpdates = do
     curBoard <- gets s3dsCurBoard
     modify $ \s -> s { s3dsPreviousBoards = curBoard : (s3dsPreviousBoards s) }
 
-    nextBoard <- gets s3dsNextBoard
-    let normalized = normalize nextBoard
-    modify $ \s -> s { s3dsCurBoard = normalized, s3dsNextBoard = normalized }
+    removalsSet <- gets s3dsRemovals
+    let removals = M.fromList $ map (\pos -> (pos, Empty)) $ S.toList removalsSet
+    writes <- gets s3dsWrites
+    let newCells = M.union writes $ M.union removals (cells curBoard)
+    let newBoard = normalize $ curBoard { cells = newCells }
+    modify $ \s -> s { s3dsCurBoard = newBoard }
+
+    modify $ \s -> s { s3dsRemovals = S.empty, s3dsWrites = M.empty }
 
 updateCells :: Sim3dM ()
 updateCells = do
@@ -343,8 +347,8 @@ performArithmetic op (x, y) = do
     case (v1, v2) of
         (Value a, Value b) -> do
             let result = a `op` b
-            writeTo (x - 1, y) Empty
-            writeTo (x, y - 1) Empty
+            removeAt (x - 1, y)
+            removeAt (x, y - 1)
             writeTo (x + 1, y) (Value result)
             writeTo (x, y + 1) (Value result)
         _ -> pure ()
@@ -372,10 +376,10 @@ warpTime = do
                         DT.pack (show dt) <> " turns, but we only remember the previous "
                         <> DT.pack (show $ length prevBoards) <> " turns"
                     pure undefined -- unreachable, but makes the type checker happy
-            let updates = M.fromList $ wsUpdates settings
-            let updatedBoard = normalize $ board { cells = M.union updates (cells board) }
-            modify $ \s -> s { s3dsNextBoard = updatedBoard }
             modify $ \s -> s { s3dsPreviousBoards = drop (fromIntegral dt) prevBoards }
+            modify $ \s -> s { s3dsCurBoard = board }
+            let updates = M.fromList $ wsUpdates settings
+            modify $ \s -> s { s3dsRemovals = S.empty, s3dsWrites = updates }
             modify $ \s -> s { s3dsWarpSettings = Nothing }
 
 updateWarpSettings :: Integer -> Position -> Cell -> Sim3dM ()

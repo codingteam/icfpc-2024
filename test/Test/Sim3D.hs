@@ -2,6 +2,7 @@ module Test.Sim3D (sim3DTests) where
 
 import Test.Tasty
 import Test.Tasty.HUnit
+import qualified Data.Text as T
 
 import Sim3D
 
@@ -16,6 +17,7 @@ sim3DTests = testGroup "Sim3D"
     ,   crashTests
     ,   timeWarpTests
     ,   outputTests
+    ,   regressionTests
     ]
 
 doStep :: Board -> Either Sim3dError Board
@@ -100,11 +102,26 @@ timeWarpTests :: TestTree
 timeWarpTests = testGroup "Sim3D.timeWarp"
     [
         testCase "Time warp (from spec)" $ do
-            let initialBoard = parseBoard "2 > . .\n. 2 @ 0\n. . 1 ."
+            let initialBoard = parseBoard $ T.unlines
+                    [
+                        "2 > . ."
+                    ,   ". 2 @ 0"
+                    ,   ". . 1 ."
+                    ]
             let step1 = runStep (stateFromBoard initialBoard)
-            (fmap s3dsCurBoard step1) @?= Right (parseBoard ". > 2 .\n. 2 @ 0\n. . 1 .")
+            (fmap s3dsCurBoard step1) @?= Right (parseBoard $ T.unlines
+                    [
+                        ". > 2 ."
+                    ,   ". 2 @ 0"
+                    ,   ". . 1 ."
+                    ])
             let step2 = runStep (fromRight step1)
-            (fmap s3dsCurBoard step2) @?= Right (parseBoard "2 > . .\n2 2 @ 0\n. . 1 .")
+            (fmap s3dsCurBoard step2) @?= Right (parseBoard $ T.unlines
+                    [
+                        "2 > . ."
+                    ,   "2 2 @ 0"
+                    ,   ". . 1 ."
+                    ])
     ]
 
 outputTests :: TestTree
@@ -121,4 +138,22 @@ outputTests = testGroup "Sim3D.output"
             let initialBoard = parseBoard "7 > S < 7"
             let step = runStep (stateFromBoard initialBoard)
             (fmap s3dsOutput step) @?= Right (Value 7)
+    ]
+
+regressionTests :: TestTree
+regressionTests = testGroup "Sim3D (regression tests)"
+    [
+        testCase "Consuming and writing a value at the same time" $ do
+            let initialBoard = parseBoard $ T.unlines
+                    [
+                        ". . . 3 ."
+                    ,   "5 > 3 + . > S"
+                    ]
+            let step1 = runStep (stateFromBoard initialBoard)
+            (fmap s3dsCurBoard step1) @?= (Right $ parseBoard $ T.unlines
+                    [
+                        "."
+                    ,   ". > 5 + 6 > S"
+                    ,   ". . . 6"
+                    ])
     ]
