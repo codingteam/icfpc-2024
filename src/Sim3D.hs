@@ -252,9 +252,6 @@ writeTo pos value = do
             board <- gets s3dsNextBoard
             let newCells = M.union update (cells board)
             let newBoard = board { cells = newCells }
-            -- FIXME: according to the spec:
-            --      6. In every tick, all reads (and removals) happen before all the writes.
-            -- However, we do removals with `writeTo _ Empty`. This should be fixed to align with the spec.
             modify' $ \s -> s { s3dsNextBoard = newBoard }
 
 storeOutput :: Cell -> Sim3dM ()
