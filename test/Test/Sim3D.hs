@@ -52,6 +52,7 @@ shiftTests = testGroup "Sim3D.shift"
     ,   testCase "Down" $ doStep (parseBoard "1\nv\n2") @?= Right (parseBoard ".\nv\n1")
     ,   testCase "Operator shift" $ doStep (parseBoard "+ < -") @?= Right (parseBoard "- < .")
     ,   testCase "Simultaneous action" $ doStep (parseBoard "1 < 2 > 1") @?= Right (parseBoard "2 < . > 2")
+    ,   testCase "Empty value is not moved" $ doStep (parseBoard "1 < .") @?= Right (parseBoard "1 < .")
     ]
 
 arithmeticTests :: TestTree

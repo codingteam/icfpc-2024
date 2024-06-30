@@ -250,11 +250,14 @@ storeOutput result = do
                     "Error: trying to submit \"" <> DT.pack (show result) <>
                     "\" when \"" <> DT.pack (show currentOutput) <> "\" is already submitted"
 
-moveCell :: Position -> Position -> Sim3dM ()
-moveCell from to = do
+moveValue :: Position -> Position -> Sim3dM ()
+moveValue from to = do
     cell <- readAt from
-    writeTo to cell
-    writeTo from Empty
+    if cell /= Empty then do
+        writeTo to cell
+        writeTo from Empty
+    else
+        pure ()
 
 moveNextToCurrent :: Sim3dM ()
 moveNextToCurrent = do
@@ -274,10 +277,10 @@ updateCell :: Position -> Sim3dM ()
 updateCell pos@(x, y) = do
     cell <- readAt pos
     case cell of
-        MoveLeft -> moveCell (x + 1, y) (x - 1, y)
-        MoveRight -> moveCell (x - 1, y) (x + 1, y)
-        MoveUp -> moveCell (x, y + 1) (x, y - 1)
-        MoveDown -> moveCell (x, y - 1) (x, y + 1)
+        MoveLeft -> moveValue (x + 1, y) (x - 1, y)
+        MoveRight -> moveValue (x - 1, y) (x + 1, y)
+        MoveUp -> moveValue (x, y + 1) (x, y - 1)
+        MoveDown -> moveValue (x, y - 1) (x, y + 1)
         Plus -> performArithmetic (+) pos
         Minus -> performArithmetic (-) pos
         Multiply -> performArithmetic (*) pos
@@ -315,8 +318,8 @@ performComparison cmp (x, y) = do
     v1 <- readAt (x - 1, y    )
     v2 <- readAt (x    , y - 1)
     when (v1 `cmp` v2) $ do
-        moveCell (x-1, y) (x+1, y)
-        moveCell (x, y-1) (x, y+1)
+        moveValue (x-1, y) (x+1, y)
+        moveValue (x, y-1) (x, y+1)
 
 warpTime :: Position -> Sim3dM ()
 warpTime (x, y) = do
