@@ -170,8 +170,6 @@ simulateStep = do
     updateCells
     moveNextToCurrent
 
-type Update = (Integer, Integer, Cell)
-
 readAt :: (Integer, Integer) -> Sim3dM Cell
 readAt pos = do
     board <- gets s3dsCurBoard
