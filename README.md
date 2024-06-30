@@ -56,6 +56,14 @@ Usage
   for i in `seq 21`; do stack run -- http-lambdaman-solution-using-bitcoding $i $(cat data/lambdaman/lambdaman${i}.sol) ; sleep 3 ; done
   ```
 
+How to use MiniSAT
+------------------
+```
+# apt install minisat
+$ minisat data/efficiency7.sat data/efficiency7.sat.out
+$ stack run satizate data/efficiency7.sat.out
+```
+
 ICFP Language
 -------------
 
