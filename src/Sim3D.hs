@@ -4,6 +4,7 @@ import qualified Data.Char as C
 import qualified Data.Text as DT
 import qualified Data.Text.IO as DTI
 import qualified Data.Map as M
+import Control.Monad
 import Control.Monad.State
 
 data Cell =
@@ -215,6 +216,8 @@ updateCell pos@(x, y) = do
         Multiply -> performArithmetic (*) pos
         Divide -> performArithmetic div pos
         Modulo -> performArithmetic mod pos
+        Equal -> performComparison (==) pos
+        NotEqual -> performComparison (/=) pos
         Value _ -> pure ()
         Empty -> pure ()
         _ -> pure () -- TODO: implement actions for the other cells
@@ -231,6 +234,14 @@ performArithmetic op (x, y) = do
             writeTo (x + 1, y) (Value result)
             writeTo (x, y + 1) (Value result)
         _ -> pure ()
+
+performComparison :: (Cell -> Cell -> Bool) -> Position -> Sim3dM ()
+performComparison cmp (x, y) = do
+    v1 <- readAt (x - 1, y    )
+    v2 <- readAt (x    , y - 1)
+    when (v1 `cmp` v2) $ do
+        moveCell (x-1, y) (x+1, y)
+        moveCell (x, y-1) (x, y+1)
 
 -- Clean up Empty cells.
 normalize :: Board -> Board
