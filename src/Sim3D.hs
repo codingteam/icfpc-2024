@@ -245,7 +245,7 @@ updateCell pos@(x, y) = do
         NotEqual -> performComparison (/=) pos
         Value _ -> pure ()
         Empty -> pure ()
-        _ -> pure () -- TODO: implement actions for the other cells
+        op -> throwError $ "Error: operator " <> (DT.pack $ show op) <> " is not implemented yet"
 
 performArithmetic :: (Integer -> Integer -> Integer) -> Position -> Sim3dM ()
 performArithmetic op (x, y) = do
