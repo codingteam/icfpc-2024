@@ -137,6 +137,8 @@ simulate boardPath inputs = do
 doSimulation :: Sim3dState -> Bool -> IO ()
 doSimulation s3dState checkGameOver = do
     let board = s3dsCurBoard s3dState
+    let time = s3dsTime s3dState
+    putStrLn $ "Local time: " ++ show time
     case s3dsPreviousBoards s3dState of
         (prevBoard:_) -> printBoardDiff prevBoard board
         _ -> printBoard board
@@ -208,7 +210,10 @@ simulateStep = do
     when (isJust warpSettings) warpTime
 
     moveNextToCurrent
-    modify' $ \s -> s { s3dsTime = 1 + s3dsTime s }
+    let timeDelta = case warpSettings of
+                        Just settings -> - wsDt settings
+                        Nothing -> 1
+    modify' $ \s -> s { s3dsTime = timeDelta + s3dsTime s }
     gets s3dsOutput
 
 readAt :: Position -> Sim3dM Cell
