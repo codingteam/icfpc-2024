@@ -27,6 +27,7 @@ library
       Config
       HttpRequests
       Lambdaman
+      Lambdaman8
       Lib
       Parser
       Printer
