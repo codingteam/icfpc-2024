@@ -166,7 +166,6 @@ isGameOver = pure True
 
 simulateStep :: Sim3dM ()
 simulateStep = do
-    board <- gets s3dsCurBoard
     updateCells
     moveNextToCurrent
 
