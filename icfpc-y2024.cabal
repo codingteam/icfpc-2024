@@ -25,6 +25,7 @@ library
   exposed-modules:
       AST
       Config
+      Efficiency
       HttpRequests
       Lambdaman
       Lambdaman8

@@ -9,6 +9,7 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Text.Pretty.Simple (pPrint)
 
+import Efficiency
 import Lib
 import Strings
 import Parser
@@ -113,5 +114,7 @@ main = do
         performRequest $ textToGalaxy $ "test 3d " <> (T.pack a) <> " " <> (T.pack b) <> "\n" <> txt
 
     ["sim3d", board, a, b] -> Sim3D.simulate board (read a, read b)
+
+    ["efficiency12"] -> putStrLn $ show efficiency12
 
     _ -> printHelp
