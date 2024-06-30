@@ -242,8 +242,8 @@ updateCell pos@(x, y) = do
         Plus -> performArithmetic (+) pos
         Minus -> performArithmetic (-) pos
         Multiply -> performArithmetic (*) pos
-        Divide -> performArithmetic div pos
-        Modulo -> performArithmetic mod pos
+        Divide -> performArithmetic quot pos
+        Modulo -> performArithmetic rem pos
         Equal -> performComparison (==) pos
         NotEqual -> performComparison (/=) pos
         Value _ -> pure ()

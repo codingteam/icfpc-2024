@@ -52,7 +52,13 @@ arithmeticTests = testGroup "Sim3D.arithmetic"
     ,   testCase "Subtraction" $ doStep (parseBoard ". 2 .\n1 - .") @?= Right (parseBoard ". . .\n. - -1 .\n. -1 .")
     ,   testCase "Multiplication" $ doStep (parseBoard ". 2 .\n3 * .") @?= Right (parseBoard ". . .\n. * 6\n. 6 .")
     ,   testCase "Division" $ doStep (parseBoard ". 4 .\n6 / .") @?= Right (parseBoard ". . .\n. / 1\n. 1 .")
+    ,   testCase "Division truncates toward zero" $
+            doStep (parseBoard ". 2 .\n-9 / .")
+            @?= Right (parseBoard ". . .\n. / -4\n. -4 .")
     ,   testCase "Modulo" $ doStep (parseBoard ". 4 .\n6 % .") @?= Right (parseBoard ". . .\n. % 2\n. 2 .")
+    ,   testCase "x%y has the same sign as x" $
+            doStep (parseBoard ". 3 .\n-11 % .")
+            @?= Right (parseBoard ". . .\n. % -2\n. -2 .")
     ,   testCase "Noop" $ doStep (parseBoard ". 4 .\n. % .") @?= Right (parseBoard ". 4 .\n. % .")
     ]
 
