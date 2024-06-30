@@ -210,9 +210,9 @@ evalAstStep input@(Lambda _ _) = Right input
 evalAstStep (Apply fn arg) = do
   fn' <- evalAst fn
   case fn' of
-    Lambda lambdaVar body ->
+    Lambda lambdaVar body -> do
       let body' = replaceVar lambdaVar arg body
-      in Right body'
+      return body'
     _ -> Left "First argument of apply didn't evaluate to a lambda"
   where
     replaceVar var value ast =

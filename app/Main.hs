@@ -17,6 +17,7 @@ import Printer
 import qualified Sim3D
 import StringBitCoding
 import Lambdaman
+import Scheme
 
 printHelp :: IO ()
 printHelp = putStrLn "Possible args:\n - http <request>\n- http-all\n- sim3d <solpath> <a> <b>"
@@ -69,6 +70,14 @@ main = do
         problem <- problemFromFile path
         let sol = greedySolve problem
         putStrLn $ showPath sol
+
+    ["to-scheme", path] -> do
+        txt <- TIO.readFile path
+        case parseExpression (T.strip txt) of
+            Left err -> putStrLn $ "Cannot parse: " ++ err
+            Right program -> do
+                TIO.putStrLn "#lang racket"
+                TIO.putStrLn $ toScheme program
 
     ["http-eval-galaxy", path] -> do
         txt <- TIO.readFile path

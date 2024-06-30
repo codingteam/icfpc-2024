@@ -30,6 +30,7 @@ library
       Lib
       Parser
       Printer
+      Scheme
       Sim3D
       StringBitCoding
       Strings
