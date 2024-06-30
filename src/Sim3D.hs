@@ -63,8 +63,8 @@ readCell "B" = InputB
 readCell cell = error $ DT.unpack $ "Unknown cell type \"" <> cell <> "\""
 
 boardFromList :: [[Cell]] -> Board
-boardFromList cells =
-    let indexedCells = concat $ zipWith (\y row -> zipWith (\x cell -> ((x, y), cell)) [0..] row) [0..] cells
+boardFromList cellsList =
+    let indexedCells = concat $ zipWith (\y row -> zipWith (\x cell -> ((x, y), cell)) [0..] row) [0..] cellsList
         minX = minimum $ map (fst . fst) indexedCells
         minY = minimum $ map (snd . fst) indexedCells
         maxX = maximum $ map (fst . fst) indexedCells
@@ -127,8 +127,8 @@ simulate :: String -> Inputs -> IO ()
 simulate boardPath inputs = do
     board <- readBoard boardPath
     let board' = replaceInputs board inputs
-        state = stateFromBoard board'
-        isAlreadyOver = evalState isGameOver state
+        s3dState = stateFromBoard board'
+        isAlreadyOver = evalState isGameOver s3dState
     if isAlreadyOver then do
         putStrLn "I cannot see the goal on the initial board. This game will never end."
         doSimulation board' False
@@ -138,14 +138,14 @@ simulate boardPath inputs = do
 doSimulation :: Board -> Bool -> IO ()
 doSimulation board checkGameOver = do
     printBoard board
-    let state = stateFromBoard board
-    let gameOver = evalState isGameOver state
+    let s3dState = stateFromBoard board
+        gameOver = evalState isGameOver s3dState
     if checkGameOver && gameOver then
         putStrLn "Game over!"
     else do
         putStrLn "Press enter to continue."
         _ <- getLine
-        let newBoard = s3dsCurBoard $ execState simulateStep state
+        let newBoard = s3dsCurBoard $ execState simulateStep s3dState
         doSimulation newBoard checkGameOver
 
 data Sim3dState = Sim3dState {
