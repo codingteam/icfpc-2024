@@ -43,7 +43,8 @@ library
       OverloadedStrings
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      array
+      ansi-terminal
+    , array
     , base >=4.7 && <5
     , bytestring
     , containers

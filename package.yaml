@@ -49,6 +49,7 @@ default-extensions:
 library:
   source-dirs: src
   dependencies:
+    - ansi-terminal
     - containers
     - mtl
     - text

@@ -21,6 +21,7 @@ import Control.Monad.Except
 import Control.Monad.State
 import Data.Either
 import Data.List (transpose)
+import System.Console.ANSI
 
 data Cell =
       Empty
@@ -115,6 +116,9 @@ printBoard board =
         Left err -> DTI.putStrLn $ "Error: " <> err
         Right table -> DTI.putStrLn table
 
+printBoardDiff :: Board -> Board -> IO ()
+printBoardDiff prev cur = DTI.putStrLn $ showBoardDiff prev cur
+
 simulate :: String -> Inputs -> IO ()
 simulate boardPath inputs = do
     board <- readBoard boardPath
@@ -132,7 +136,9 @@ simulate boardPath inputs = do
 doSimulation :: Sim3dState -> Bool -> IO ()
 doSimulation s3dState checkGameOver = do
     let board = s3dsCurBoard s3dState
-    printBoard board
+    case s3dsPreviousBoards s3dState of
+        (prevBoard:_) -> printBoardDiff prevBoard board
+        _ -> printBoard board
     let gameOver =
             let result = evalSimulation isGameOver s3dState
             in isLeft result || (result == Right True)
@@ -373,27 +379,28 @@ shiftBy (dx, dy) board =
         newMax = (maxX + dx, maxY + dy) in
     board { cells = shiftedCells, minCoords = newMin, maxCoords = newMax }
 
+showCell :: Cell -> DT.Text
+showCell Empty = "."
+showCell (Value x) = DT.pack $ show x
+showCell MoveLeft = "<"
+showCell MoveRight = ">"
+showCell MoveUp = "^"
+showCell MoveDown = "v"
+showCell Plus = "+"
+showCell Minus = "-"
+showCell Multiply = "*"
+showCell Divide = "/"
+showCell Modulo = "%"
+showCell TimeWarp = "@"
+showCell Equal = "="
+showCell NotEqual = "#"
+showCell OutputS = "S"
+showCell InputA = "A"
+showCell InputB = "B"
+
 showBoard :: Sim3dM DT.Text
 showBoard = do
-    let showCell Empty = "."
-        showCell (Value x) = DT.pack $ show x
-        showCell MoveLeft = "<"
-        showCell MoveRight = ">"
-        showCell MoveUp = "^"
-        showCell MoveDown = "v"
-        showCell Plus = "+"
-        showCell Minus = "-"
-        showCell Multiply = "*"
-        showCell Divide = "/"
-        showCell Modulo = "%"
-        showCell TimeWarp = "@"
-        showCell Equal = "="
-        showCell NotEqual = "#"
-        showCell OutputS = "S"
-        showCell InputA = "A"
-        showCell InputB = "B"
-
-    columns <- boardToColumnMajorList
+    columns <- fmap boardToColumnMajorList (gets s3dsCurBoard)
     let formattedColumns = (map.map) showCell columns
         columnWidths = map (\column -> maximum (0 : map DT.length column)) formattedColumns
         paddedColumns =
@@ -405,14 +412,40 @@ showBoard = do
         table = DT.unlines $ map DT.unwords rows
     pure table
 
-boardToColumnMajorList :: Sim3dM [[Cell]]
-boardToColumnMajorList = do
-    board <- gets s3dsCurBoard
+showBoardDiff :: Board -> Board -> DT.Text
+showBoardDiff prev cur =
+    let prevColumns = boardToColumnMajorList prev
+        curColumns = boardToColumnMajorList cur
+        changes = (zipWith . zipWith) (/=) prevColumns curColumns
+
+        formattedColumns = (map.map) showCell curColumns
+        columnWidths = map (\column -> maximum (0 : map DT.length column)) formattedColumns
+        paddedColumns =
+            zipWith
+                (\width column -> map (DT.center width ' ') column)
+                columnWidths
+                formattedColumns
+        colorisedColumns =
+            (zipWith . zipWith)
+            (\highlight value ->
+                if highlight
+                    then
+                        let green = setSGRCode [SetColor Foreground Vivid Green]
+                            reset = setSGRCode []
+                        in DT.concat [DT.pack green, value, DT.pack reset]
+                    else value)
+            changes
+            paddedColumns
+        rows = transpose colorisedColumns
+        table = DT.unlines $ map DT.unwords rows
+    in table
+
+boardToColumnMajorList :: Board -> [[Cell]]
+boardToColumnMajorList board =
     let ((minX, minY), (maxX, maxY)) = (minCoords board, maxCoords board)
-    pure $
-        map
-            (\x ->
-                map
-                    (\y -> M.findWithDefault Empty (x, y) $ cells board)
-                    [minY..maxY])
-            [minX..maxX]
+    in map
+        (\x ->
+            map
+                (\y -> M.findWithDefault Empty (x, y) $ cells board)
+                [minY..maxY])
+        [minX..maxX]
