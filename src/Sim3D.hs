@@ -6,6 +6,7 @@ module Sim3D (
 ,   stateFromBoard
 ,   Sim3dState(..)
 ,   Sim3dError
+,   Cell(..)
 ,   shiftBy
 ,   execSimulation
 ,   runSimulation
@@ -149,6 +150,7 @@ data Sim3dState = Sim3dState {
 ,   s3dsNextBoard :: Board --- ^ Next state of the board (we're updating it)
 ,   s3dsTime :: Integer --- ^ Current time (starts at 1)
 ,   s3dsPreviousBoards :: [Board] --- ^ Stack of previous board states. The top (first list element) is the most recent state.
+,   s3dsOutput :: Cell --- ^ The result of the computation. The simulation terminates when this field becomes non-`Empty`.
 }
 
 stateFromBoard :: Board -> Sim3dState
@@ -158,6 +160,7 @@ stateFromBoard board =
     ,   s3dsNextBoard = board
     ,   s3dsTime = 1
     ,   s3dsPreviousBoards = []
+    ,   s3dsOutput = Empty
     }
 
 type Sim3dError = DT.Text
@@ -176,13 +179,17 @@ runSimulation action initialState =
     runExcept $ runStateT action initialState
 
 isGameOver :: Sim3dM Bool
-isGameOver = pure True
+isGameOver = do
+    output <- gets s3dsOutput
+    pure $ output /= Empty
 
-simulateStep :: Sim3dM ()
+--- Runs a single tick of the simulation and returns current output.
+simulateStep :: Sim3dM Cell
 simulateStep = do
     updateCells
     moveNextToCurrent
     modify' $ \s -> s { s3dsTime = 1 + s3dsTime s }
+    gets s3dsOutput
 
 readAt :: Position -> Sim3dM Cell
 readAt pos = do
@@ -199,12 +206,14 @@ ensureWriteIsAllowed pos value = do
     currentValue <- readAt pos
     nextValue <- readNextBoardAt pos
 
+    -- we can write into an output cell any time; its invariants are checked in `storeOutput`
+    let isOutput = currentValue == OutputS
     -- we haven't written to this cell on this tick yet
     let isFirstWrite = currentValue == nextValue
     -- we're writing the same value that's already in the cell
     let overwriteWithSame = nextValue == value
 
-    when (not isFirstWrite && not overwriteWithSame) $ do
+    when (not isOutput && not isFirstWrite && not overwriteWithSame) $ do
         let fPos = DT.pack $ show pos
         let fValue = DT.pack $ show value
         let fNextValue = DT.pack $ show nextValue
@@ -215,16 +224,31 @@ ensureWriteIsAllowed pos value = do
 writeTo :: Position -> Cell -> Sim3dM ()
 writeTo pos value = do
     ensureWriteIsAllowed pos value
-    let update = M.singleton pos value
-    board <- gets s3dsNextBoard
-    let newCells = M.union update (cells board)
-    let newBoard = board { cells = newCells }
-    -- FIXME: according to the spec:
-    --      6. In every tick, all reads (and removals) happen before all the writes.
-    -- However, we do removals with `writeTo _ Empty`. This should be fixed to align with the spec.
-    --
-    -- TODO: implement submitting of answers (by overwriting the OutputS operator)
-    modify' $ \s -> s { s3dsNextBoard = newBoard }
+    currentValue <- readAt pos
+    case currentValue of
+        OutputS -> storeOutput value
+        _ -> do
+            let update = M.singleton pos value
+            board <- gets s3dsNextBoard
+            let newCells = M.union update (cells board)
+            let newBoard = board { cells = newCells }
+            -- FIXME: according to the spec:
+            --      6. In every tick, all reads (and removals) happen before all the writes.
+            -- However, we do removals with `writeTo _ Empty`. This should be fixed to align with the spec.
+            --
+            -- TODO: implement submitting of answers (by overwriting the OutputS operator)
+            modify' $ \s -> s { s3dsNextBoard = newBoard }
+
+storeOutput :: Cell -> Sim3dM ()
+storeOutput result = do
+    currentOutput <- gets s3dsOutput
+    case currentOutput of
+        Empty -> modify $ \s -> s { s3dsOutput = result }
+        value ->
+            when (value /= result) $
+                sim3dThrowError $
+                    "Error: trying to submit \"" <> DT.pack (show result) <>
+                    "\" when \"" <> DT.pack (show currentOutput) <> "\" is already submitted"
 
 moveCell :: Position -> Position -> Sim3dM ()
 moveCell from to = do
@@ -264,7 +288,14 @@ updateCell pos@(x, y) = do
         NotEqual -> performComparison (/=) pos
         Value _ -> pure ()
         Empty -> pure ()
-        op -> sim3dThrowError $ "Error: operator " <> (DT.pack $ show op) <> " is not implemented yet"
+        OutputS -> pure ()
+        InputA -> inputVarsDuringSimulation
+        InputB -> inputVarsDuringSimulation
+        where
+            inputVarsDuringSimulation =
+                sim3dThrowError
+                    $ "Error at position " <> DT.pack (show pos)
+                    <> ": input variables on the board during the simulation!"
 
 performArithmetic :: (Integer -> Integer -> Integer) -> Position -> Sim3dM ()
 performArithmetic op (x, y) = do
