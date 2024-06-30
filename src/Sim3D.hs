@@ -8,6 +8,7 @@ module Sim3D (
 ,   Sim3dError
 ,   shiftBy
 ,   execSimulation
+,   runSimulation
 ) where
 
 import qualified Data.Char as C
@@ -146,6 +147,8 @@ doSimulation s3dState checkGameOver = do
 data Sim3dState = Sim3dState {
     s3dsCurBoard :: Board --- ^ Current state of the board (read-only)
 ,   s3dsNextBoard :: Board --- ^ Next state of the board (we're updating it)
+,   s3dsTime :: Integer --- ^ Current time (starts at 1)
+,   s3dsPreviousBoards :: [Board] --- ^ Stack of previous board states. The top (first list element) is the most recent state.
 }
 
 stateFromBoard :: Board -> Sim3dState
@@ -153,6 +156,8 @@ stateFromBoard board =
     Sim3dState {
         s3dsCurBoard = board
     ,   s3dsNextBoard = board
+    ,   s3dsTime = 1
+    ,   s3dsPreviousBoards = []
     }
 
 type Sim3dError = DT.Text
@@ -166,6 +171,10 @@ evalSimulation :: Sim3dM a -> Sim3dState -> Either Sim3dError a
 evalSimulation action initialState =
     runExcept $ evalStateT action initialState
 
+runSimulation :: Sim3dM a -> Sim3dState -> Either Sim3dError (a, Sim3dState)
+runSimulation action initialState =
+    runExcept $ runStateT action initialState
+
 isGameOver :: Sim3dM Bool
 isGameOver = pure True
 
@@ -173,6 +182,7 @@ simulateStep :: Sim3dM ()
 simulateStep = do
     updateCells
     moveNextToCurrent
+    modify' $ \s -> s { s3dsTime = 1 + s3dsTime s }
 
 readAt :: Position -> Sim3dM Cell
 readAt pos = do
@@ -198,7 +208,7 @@ ensureWriteIsAllowed pos value = do
         let fPos = DT.pack $ show pos
         let fValue = DT.pack $ show value
         let fNextValue = DT.pack $ show nextValue
-        throwError $
+        sim3dThrowError $
             "Error: trying to overwrite previously written value of \""
             <> fNextValue <> "\" with \"" <> fValue <> "\" at " <> fPos
 
@@ -224,6 +234,9 @@ moveCell from to = do
 
 moveNextToCurrent :: Sim3dM ()
 moveNextToCurrent = do
+    curBoard <- gets s3dsCurBoard
+    modify $ \s -> s { s3dsPreviousBoards = curBoard : (s3dsPreviousBoards s) }
+
     nextBoard <- gets s3dsNextBoard
     let normalized = normalize nextBoard
     modify $ \s -> s { s3dsCurBoard = normalized, s3dsNextBoard = normalized }
@@ -246,11 +259,12 @@ updateCell pos@(x, y) = do
         Multiply -> performArithmetic (*) pos
         Divide -> performArithmetic quot pos
         Modulo -> performArithmetic rem pos
+        TimeWarp -> warpTime pos
         Equal -> performComparison (==) pos
         NotEqual -> performComparison (/=) pos
         Value _ -> pure ()
         Empty -> pure ()
-        op -> throwError $ "Error: operator " <> (DT.pack $ show op) <> " is not implemented yet"
+        op -> sim3dThrowError $ "Error: operator " <> (DT.pack $ show op) <> " is not implemented yet"
 
 performArithmetic :: (Integer -> Integer -> Integer) -> Position -> Sim3dM ()
 performArithmetic op (x, y) = do
@@ -272,6 +286,36 @@ performComparison cmp (x, y) = do
     when (v1 `cmp` v2) $ do
         moveCell (x-1, y) (x+1, y)
         moveCell (x, y-1) (x, y+1)
+
+warpTime :: Position -> Sim3dM ()
+warpTime (x, y) = do
+    v <- readAt (x, y-1)
+    dx' <- readAt (x-1, y)
+    dy' <- readAt (x+1, y)
+    dt' <- readAt (x, y+1)
+    when (v /= Empty) $ do
+      case (dx', dy', dt') of
+          (Value dx, Value dy, Value dt) -> do
+              when (dt < 1) $
+                  sim3dThrowError $ "Error: attempted to warp time with dt="
+                      <> DT.pack (show dt) <> " < 1"
+              curTime <- gets s3dsTime
+              when (dt >= curTime) $
+                  sim3dThrowError $ "Error: attempted to warp time with dt="
+                      <> DT.pack (show dt) <> " >= current time"
+              prevBoards <- gets s3dsPreviousBoards
+              let board = head $ drop (fromIntegral $ dt - 1) prevBoards
+              let update = M.singleton (x-dx, y-dy) v
+              let updatedBoard = normalize $ board { cells = M.union update (cells board) }
+              -- TODO: check for interactions between multiple warp operators
+              modify $ \s -> s { s3dsNextBoard = updatedBoard }
+              modify $ \s -> s { s3dsPreviousBoards = drop (fromIntegral dt) prevBoards }
+          _ -> pure ()
+
+sim3dThrowError :: DT.Text -> Sim3dM ()
+sim3dThrowError msg = do
+    curTime <- gets s3dsTime
+    throwError $ "[T " <> DT.pack (show curTime) <> "] " <> msg
 
 -- Clean up Empty cells.
 normalize :: Board -> Board

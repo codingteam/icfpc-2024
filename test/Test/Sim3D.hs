@@ -14,10 +14,18 @@ sim3DTests = testGroup "Sim3D"
     ,   arithmeticTests
     ,   comparisonTests
     ,   crashTests
+    ,   timeWarpTests
     ]
 
 doStep :: Board -> Either Sim3dError Board
 doStep board = fmap s3dsCurBoard $ execSimulation simulateStep (stateFromBoard board)
+
+runStep :: Sim3dState -> Either Sim3dError Sim3dState
+runStep s = fmap snd $ runSimulation simulateStep s
+
+fromRight :: Show e => Either e a -> a
+fromRight (Left err) = error $ show err
+fromRight (Right value) = value
 
 basicCellPreservationTests :: TestTree
 basicCellPreservationTests = testGroup "Sim3D.basicCellPreservation"
@@ -77,7 +85,18 @@ crashTests = testGroup "Sim3D.crash"
         testCase "Crash 1" $
             doStep (parseBoard "1 > . < 2")
             @?=
-            Left "Error: trying to overwrite previously written value of \"Value 1\" with \"Value 2\" at (2,0)"
+            Left "[T 1] Error: trying to overwrite previously written value of \"Value 1\" with \"Value 2\" at (2,0)"
     ,   testCase "Writing the same value multiple times is fine" $
             doStep (parseBoard "1 > . < 1") @?= Right (parseBoard ". > 1 < .")
+    ]
+
+timeWarpTests :: TestTree
+timeWarpTests = testGroup "Sim3D.timeWarp"
+    [
+        testCase "Time warp (from spec)" $ do
+            let initialBoard = parseBoard "2 > . .\n. 2 @ 0\n. . 1 ."
+            let step1 = runStep (stateFromBoard initialBoard)
+            (fmap s3dsCurBoard step1) @?= Right (parseBoard ". > 2 .\n. 2 @ 0\n. . 1 .")
+            let step2 = runStep (fromRight step1)
+            (fmap s3dsCurBoard step2) @?= Right (parseBoard "2 > . .\n2 2 @ 0\n. . 1 .")
     ]
