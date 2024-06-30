@@ -313,6 +313,7 @@ showProblem p =
         showCell 0 = ' '
         showCell 2 = '#'
         showCell 1 = '.'
+        showCell x = error $ "Unknown cell type " ++ show x
         textGrid' = textGrid // [(pPosition p, 'L'), (pOrigin p, 'o')]
         (_, (_maxY, maxX)) = U.bounds (gGrid $ pGrid p)
     in  unlines $ chunksOf (maxX+1) $ U.elems textGrid'
