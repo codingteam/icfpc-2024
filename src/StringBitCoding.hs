@@ -4,6 +4,8 @@ module StringBitCoding (
 
 ,   lambdamanAlphabet
 ,   spaceshipAlphabet
+,   repeater, gRepeat
+,   makeRecursion
 ) where
 
 import qualified Data.Map.Strict as M
@@ -82,3 +84,15 @@ bitcodeDecompressor alphabet = Apply yCombinator recursiveDecompressor
 
 yCombinator :: AST
 yCombinator = Lambda 0 (Apply (Lambda 1 (Apply (Var 0) (Apply (Var 1) (Var 1)))) (Lambda 2 (Apply (Var 0) (Apply (Var 2) (Var 2)))))
+
+repeater :: AST
+repeater =
+    Apply yCombinator (Lambda 0 (Lambda 1 (Lambda 2 (If (Equals (Var 2) (Number 1)) (Var 1) (Concat (Var 1) (Apply (Apply (Var 0) (Var 1)) (Sub (Var 2) (Number 1))))))))
+
+gRepeat :: Integer -> AST -> AST
+gRepeat n x =
+    Apply (Apply (Apply yCombinator (Lambda 0 (Lambda 1 (Lambda 2 (If (Equals (Var 2) (Number 1)) (Var 1) (Concat (Var 1) (Apply (Apply (Var 0) (Var 1)) (Sub (Var 2) (Number 1))))))))) x) (Number n)
+
+makeRecursion :: AST -> AST
+makeRecursion x = Apply yCombinator x
+

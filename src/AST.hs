@@ -1,8 +1,16 @@
-module AST (AST (..), VarNo, evalAst) where
+module AST (
+    AST (..),
+    VarNo,
+    evalAst,
+    ($$), (-->),
+    (=~), (>~), (<~),
+    (><)
+    ) where
 
 import qualified Data.Text as T
 import Control.Monad.State
 import Data.Functor.Identity
+import Data.String
 
 import Lib (parseNumber, printNumber)
 import Strings (textToGalaxy, textFromGalaxy)
@@ -35,6 +43,42 @@ data AST =
     | Var VarNo
     | Lambda VarNo AST
     deriving (Eq, Show)
+
+($$) :: AST -> AST -> AST
+($$) = Apply
+infixr 0 $$
+
+(-->) :: VarNo -> AST -> AST
+(-->) = Lambda
+infixr 0 -->
+
+(=~) :: AST -> AST -> AST
+(=~) = Equals
+infix 4 =~
+
+(>~) :: AST -> AST -> AST
+(>~) = Gt
+infix 4 >~
+
+(<~) :: AST -> AST -> AST
+(<~) = Lt
+infix 4 <~
+
+(><) :: AST -> AST -> AST
+(><) = Concat
+infixr 5 ><
+
+instance Num AST where
+    (+) = Add
+    (-) = Sub
+    (*) = Mult
+    abs = undefined
+    signum = undefined
+    negate = Negate
+    fromInteger = Number
+
+instance IsString AST where
+    fromString = Str . T.pack
 
 --- Returns either the reduced AST or the error message explaining what went wrong.
 evalAst :: AST -> Either T.Text AST
