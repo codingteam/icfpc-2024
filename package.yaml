@@ -27,6 +27,7 @@ dependencies:
 - http-conduit
 - megaparsec >= 9.5.0
 - pretty-simple
+- vector
 - array
 - hashable
 - pqueue
@@ -75,6 +76,7 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - icfpc-y2024
+    - mtl
     - tasty
     - tasty-hunit
     - tasty-quickcheck
