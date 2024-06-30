@@ -2,7 +2,6 @@ module Test.Sim3D (sim3DTests) where
 
 import Test.Tasty
 import Test.Tasty.HUnit
-import Control.Monad.State
 
 import Sim3D
 
@@ -18,7 +17,7 @@ sim3DTests = testGroup "Sim3D"
     ]
 
 doStep :: Board -> Board
-doStep board = s3dsCurBoard $ execState simulateStep (stateFromBoard board)
+doStep board = s3dsCurBoard $ execSimulation simulateStep (stateFromBoard board)
 
 basicCellPreservationTests :: TestTree
 basicCellPreservationTests = testGroup "Sim3D.basicCellPreservation"

@@ -1,4 +1,13 @@
-module Sim3D (simulate, simulateStep, parseBoard, Board, stateFromBoard, Sim3dState(..), shiftBy) where
+module Sim3D (
+    simulate
+,   simulateStep
+,   parseBoard
+,   Board
+,   stateFromBoard
+,   Sim3dState(..)
+,   shiftBy
+,   execSimulation
+) where
 
 import qualified Data.Char as C
 import qualified Data.Text as DT
@@ -96,14 +105,14 @@ replaceInputs board (a, b) =
     in board { cells = M.map replaceCell $ cells board }
 
 printBoard :: Board -> IO ()
-printBoard board = DTI.putStrLn $ evalState showBoard (stateFromBoard board)
+printBoard board = DTI.putStrLn $ evalSimulation showBoard (stateFromBoard board)
 
 simulate :: String -> Inputs -> IO ()
 simulate boardPath inputs = do
     board <- readBoard boardPath
     let board' = replaceInputs board inputs
         s3dState = stateFromBoard board'
-        isAlreadyOver = evalState isGameOver s3dState
+        isAlreadyOver = evalSimulation isGameOver s3dState
     if isAlreadyOver then do
         putStrLn "I cannot see the goal on the initial board. This game will never end."
         doSimulation board' False
@@ -114,13 +123,13 @@ doSimulation :: Board -> Bool -> IO ()
 doSimulation board checkGameOver = do
     printBoard board
     let s3dState = stateFromBoard board
-        gameOver = evalState isGameOver s3dState
+        gameOver = evalSimulation isGameOver s3dState
     if checkGameOver && gameOver then
         putStrLn "Game over!"
     else do
         putStrLn "Press enter to continue."
         _ <- getLine
-        let newBoard = s3dsCurBoard $ execState simulateStep s3dState
+        let newBoard = s3dsCurBoard $ execSimulation simulateStep s3dState
         doSimulation newBoard checkGameOver
 
 data Sim3dState = Sim3dState {
@@ -136,6 +145,12 @@ stateFromBoard board =
     }
 
 type Sim3dM a = State Sim3dState a
+
+execSimulation :: Sim3dM a -> Sim3dState -> Sim3dState
+execSimulation = execState
+
+evalSimulation :: Sim3dM a -> Sim3dState -> a
+evalSimulation = evalState
 
 isGameOver :: Sim3dM Bool
 isGameOver = pure True
