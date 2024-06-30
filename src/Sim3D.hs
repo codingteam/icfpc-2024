@@ -6,6 +6,7 @@ import qualified Data.Text.IO as DTI
 import qualified Data.Map as M
 import Control.Monad
 import Control.Monad.State
+import Data.List (transpose)
 
 data Cell =
       Empty
@@ -74,11 +75,6 @@ boardFromList cellsList =
         maxY = maximum $ map (snd . fst) indexedCells in
     Board (M.fromList indexedCells) (minX, minY) (maxX, maxY)
 
-boardToList :: Board -> [[Cell]]
-boardToList board =
-    let ((minX, minY), (maxX, maxY)) = (minCoords board, maxCoords board) in
-    map (\y -> map (\x -> M.findWithDefault Empty (x, y) $ cells board) [minX..maxX]) [minY..maxY]
-
 parseBoard :: DT.Text -> Board
 parseBoard contents =
     let textRows = DT.lines contents
@@ -100,31 +96,7 @@ replaceInputs board (a, b) =
     in board { cells = M.map replaceCell $ cells board }
 
 printBoard :: Board -> IO ()
-printBoard board = do
-    let printCell Empty = putStr "."
-        printCell (Value x) = putStr $ show x
-        printCell MoveLeft = putStr "<"
-        printCell MoveRight = putStr ">"
-        printCell MoveUp = putStr "^"
-        printCell MoveDown = putStr "v"
-        printCell Plus = putStr "+"
-        printCell Minus = putStr "-"
-        printCell Multiply = putStr "*"
-        printCell Divide = putStr "/"
-        printCell Modulo = putStr "%"
-        printCell TimeWarp = putStr "@"
-        printCell Equal = putStr "="
-        printCell NotEqual = putStr "#"
-        printCell OutputS = putStr "S"
-        printCell InputA = putStr "A"
-        printCell InputB = putStr "B"
-        printRow row = do
-            mapM_ (\x -> do
-                printCell x
-                putStr " ") row
-
-            putStrLn ""
-    mapM_ printRow $ boardToList board
+printBoard board = DTI.putStrLn $ evalState showBoard (stateFromBoard board)
 
 simulate :: String -> Inputs -> IO ()
 simulate boardPath inputs = do
@@ -264,3 +236,47 @@ shiftBy (dx, dy) board =
         newMin = (minX + dx, minY + dy)
         newMax = (maxX + dx, maxY + dy) in
     board { cells = shiftedCells, minCoords = newMin, maxCoords = newMax }
+
+showBoard :: Sim3dM DT.Text
+showBoard = do
+    let showCell Empty = "."
+        showCell (Value x) = DT.pack $ show x
+        showCell MoveLeft = "<"
+        showCell MoveRight = ">"
+        showCell MoveUp = "^"
+        showCell MoveDown = "v"
+        showCell Plus = "+"
+        showCell Minus = "-"
+        showCell Multiply = "*"
+        showCell Divide = "/"
+        showCell Modulo = "%"
+        showCell TimeWarp = "@"
+        showCell Equal = "="
+        showCell NotEqual = "#"
+        showCell OutputS = "S"
+        showCell InputA = "A"
+        showCell InputB = "B"
+
+    columns <- boardToColumnMajorList
+    let formattedColumns = (map.map) showCell columns
+        columnWidths = map (\column -> maximum (0 : map DT.length column)) formattedColumns
+        paddedColumns =
+            zipWith
+                (\width column -> map (DT.center width ' ') column)
+                columnWidths
+                formattedColumns
+        rows = transpose paddedColumns
+        table = DT.unlines $ map DT.unwords rows
+    pure table
+
+boardToColumnMajorList :: Sim3dM [[Cell]]
+boardToColumnMajorList = do
+    board <- gets s3dsCurBoard
+    let ((minX, minY), (maxX, maxY)) = (minCoords board, maxCoords board)
+    pure $
+        map
+            (\x ->
+                map
+                    (\y -> M.findWithDefault Empty (x, y) $ cells board)
+                    [minY..maxY])
+            [minX..maxX]
