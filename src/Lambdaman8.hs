@@ -71,7 +71,7 @@ times = makeRecursion go
               (action)))
 
 explode :: Char -> AST
-explode c = double $$ Str $ T.pack $ take 50 $ repeat c
+explode c = double $$ double $$ Str $ T.pack $ take 25 $ repeat c
 
 goDown :: AST
 goDown = explode 'D'
