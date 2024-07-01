@@ -7,7 +7,8 @@ module Efficiency (
     readSATInput,
     getNestedExpression,
     stripYCombinator,
-    exprToZ3
+    exprToZ3,
+    exprToZ3AssertionsList
 ) where
 
 import Data.Function (fix)
@@ -2769,3 +2770,7 @@ exprToZ3 (Or x y) = "(or " <> exprToZ3 x <> " " <> exprToZ3 y <> ")"
 exprToZ3 (And x y) = "(and " <> exprToZ3 x <> " " <> exprToZ3 y <> ")"
 exprToZ3 (Var n) = "n" <> tshow n
 exprToZ3 ast = error $ "Can't convert this to Z3: " ++ show ast
+
+exprToZ3AssertionsList :: AST -> T.Text
+exprToZ3AssertionsList (And x y) = T.unlines [ exprToZ3AssertionsList x, exprToZ3AssertionsList y ]
+exprToZ3AssertionsList ast = "(assert " <> exprToZ3 ast <> ")"
