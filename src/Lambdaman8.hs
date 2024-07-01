@@ -15,7 +15,13 @@ triple = 0 --> Concat input (Concat input input)
     input = Var 0
 
 explode :: Char -> AST
-explode c = triple $$ Str $ T.pack $ take 33 $ repeat c
+explode c =
+    0 -->
+    1 -->
+    (applyThrice' $$ triple') $$ Str $ T.pack $ take 4 $ repeat c
+    where
+    applyThrice' = Var 0
+    triple' = Var 1
 
 goDown :: AST
 goDown = explode 'D'
@@ -31,13 +37,18 @@ goRight = explode 'R'
 
 loop :: AST
 loop =
+    0 -->
+    1 -->
     Concat
-        goDown
+        ((goDown $$ applyThrice') $$ triple')
         (Concat
-            goLeft
+            ((goLeft $$ applyThrice') $$ triple')
             (Concat
-                goUp
-                goRight))
+                ((goUp $$ applyThrice') $$ triple')
+                ((goRight $$ applyThrice') $$ triple')))
+    where
+    applyThrice' = Var 0
+    triple' = Var 1
 
 applyThrice :: AST
 applyThrice =
@@ -49,10 +60,13 @@ applyThrice =
     input = Var 1
 
 spin :: AST
-spin = (applyThrice $$ triple) $$ loop
+spin = 0 --> 1 --> (applyThrice' $$ triple') $$ ((loop $$ applyThrice) $$ triple')
+    where
+    applyThrice' = Var 0
+    triple' = Var 1
 
 lambdaman8Solution :: AST
 lambdaman8Solution =
     Concat
         "solve lambdaman8 "
-        spin
+        ((spin $$ applyThrice) $$ triple)
