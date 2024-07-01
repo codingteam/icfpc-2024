@@ -7,6 +7,7 @@
 
 typedef struct Star {
   int x = 0, y = 0;
+  bool visited = false;
 } Star;
 
 typedef struct Ship {
@@ -45,7 +46,7 @@ std::vector<Star> load_stars(const std::string &filename) {
   return stars;
 }
 
-std::tuple<int, int, int> steps_to_point(const Ship& ship, const Star& star, const int Nmax = 1000) {
+std::tuple<int, int, int> steps_to_point(const Ship& ship, const Star& star, const int Nmax = 10000) {
   for (int nsteps = 0; nsteps < Nmax; nsteps++) {
     const int triangle_number = nsteps * (nsteps + 1) / 2;
     const int dx = ship.x + ship.vx * nsteps - star.x;
@@ -167,6 +168,72 @@ std::string build_ordered_path(const std::vector<Star> &stars) {
   return mergepath(acc_x, acc_y);
 }
 
+int find_nearest(const Ship& ship, const std::vector<Star>& stars) {
+  int star_id = -1;
+  int min_dist = 2'000'000'000;
+  for(int stid = 0; stid < stars.size(); stid++) {
+    Star star = stars[stid];
+    if (star.visited) continue;
+    if (std::abs(ship.x - star.x) + std::abs(ship.y - star.y) < min_dist) {
+      star_id = stid;
+    }
+  }
+  return star_id;
+}
+
+int find_in_range(const Ship& ship, const std::vector<Star>& stars, int Nmax = 6) {
+  int star_id = -1;
+  int nrange_min = Nmax;
+  for(int stid = 0; stid < stars.size(); stid++) {
+    Star star = stars[stid];
+    if (star.visited) continue;
+    int nsteps, dx, dy;
+    auto res = steps_to_point(ship, star, Nmax);
+    std::tie(nsteps, dx, dy) = res;
+    if (nsteps > 0 && nsteps < nrange_min) {
+      star_id = stid;
+      nrange_min = nsteps;
+    }
+    if (nrange_min == 1) break;
+  }
+  return star_id;
+}
+
+std::string follow_by_speed(std::vector<Star> &stars) {
+  Ship ship{0,0,0,0};
+  std::string acc_x(""), acc_y("");
+  while (true) {
+    int star_id = find_nearest(ship, stars);
+    if (star_id <= 0) break;
+    while(true) {
+      if (star_id < 0) break;
+      Star star = stars[star_id];
+      stars[star_id].visited = true;
+      //
+      int nsteps, dx, dy;
+      const auto res = steps_to_point(ship, star);
+      std::tie(nsteps, dx, dy) = res;
+      if (nsteps < 0) return "";
+      //
+      const auto& acc_x_s = accelerate(dx, nsteps);
+      const auto& acc_y_s = accelerate(dy, nsteps);
+      //
+      int dvx = 0, dvy = 0;
+      acc_x += accelerate_to_path(acc_x_s, dx > 0 ? '4' : '6', dvx);
+      acc_y += accelerate_to_path(acc_y_s, dy > 0 ? '2' : '8', dvy);
+      ship.x = star.x;
+      ship.y = star.y;
+      ship.vx += dx > 0 ? -dvx : dvx;
+      ship.vy += dy > 0 ? -dvy : dvy;
+      star_id = find_in_range(ship, stars);
+    }
+  }
+  for (auto& star : stars) {
+    star.visited = false;
+  }
+  return mergepath(acc_x, acc_y);
+}
+
 int main(int argc, char *argv[]) {
   if (argc < 2) {
     std::cerr << "Not enough arguments!" << std::endl;
@@ -175,14 +242,21 @@ int main(int argc, char *argv[]) {
   std::string res("");
   if (argc >= 2) {
     std::string filename(argv[1]);
-    std::cout << filename << std::endl;
     auto stars = load_stars(filename);
     res = build_ordered_path(stars);
+    std::cerr << filename << ": Original data, len = " << res_sort.size() << std::endl;
     // try load sorted version
     auto stars_sort = load_stars(filename + "_sort");
     std::string res_sort = build_ordered_path(stars_sort);
-    if (res.size == 0 || (res_sort.size() > 0 && res.size() > res_sort.size())) {
+    if (res.size() == 0 || (res_sort.size() > 0 && res.size() > res_sort.size())) {
+      std::cerr << filename << ": Choosing sorted data, len = " << res_sort.size() << std::endl;
       res = res_sort;
+    }
+    // has an effect only for spaceship15
+    std::string res_follow = follow_by_speed(stars);
+    if (res.size() == 0 || (res_follow.size() > 0 && res.size() > res_follow.size())) {
+      std::cerr << filename << ": Choosing follow_by_speed, len = " << res_follow.size() << std::endl;
+      res = res_follow;
     }
   }
   std::cout << res << std::endl;
