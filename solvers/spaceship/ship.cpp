@@ -38,22 +38,24 @@ std::vector<Star> load_stars(const std::string &filename) {
 }
 
 std::tuple<int, int, int> steps_to_point(const Ship& ship, const Star& star) {
-  const int Nmax = 10;
-  constexpr std::array<int,Nmax> triangle_numbers { 0, 1, 3, 6, 10, 15, 21, 28, 36, 45 };
+  const int Nmax = 1000;
+  std::vector<int> triangle_numbers;
+  for (int i = 0; i < Nmax; i++) {
+    triangle_numbers.push_back(i*(i+1)/2);
+  }
   for (int nsteps = 0; nsteps < Nmax; nsteps++) {
     const int dx = ship.x + ship.vx * nsteps - star.x;
     const int dy = ship.y + ship.vy * nsteps - star.y;
     if (std::abs(dx) <= triangle_numbers[nsteps] && std::abs(dy) <= triangle_numbers[nsteps])
       return std::make_tuple(nsteps, dx, dy);
   }
-  std::cerr << "Distance is too large" << std::endl;
+  std::cerr << "Distance is too large: " << Nmax << std::endl;
   exit(1);
 }
 
 const std::string accelerate(int dc, const int& nsteps) {
   dc = std::abs(dc);
   const int Nmax = 10;
-  constexpr std::array<int,Nmax> triangle_numbers { 0, 1, 3, 6, 10, 15, 21, 28, 36, 45 };
   std::string acc("");
   for(int step = nsteps; step > 0; step--) {
     if (dc >= step) {
