@@ -60,7 +60,7 @@ applyThrice =
     input = Var 1
 
 spin :: AST
-spin = 0 --> 1 --> (applyThrice' $$ triple') $$ ((loop $$ applyThrice) $$ triple')
+spin = 0 --> 1 --> (applyThrice' $$ triple') $$ ((loop $$ applyThrice') $$ triple')
     where
     applyThrice' = Var 0
     triple' = Var 1
