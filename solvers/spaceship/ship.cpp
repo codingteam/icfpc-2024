@@ -181,7 +181,7 @@ int find_nearest(const Ship& ship, const std::vector<Star>& stars) {
   return star_id;
 }
 
-int find_in_range(const Ship& ship, const std::vector<Star>& stars, int Nmax = 15) {
+int find_in_range(const Ship& ship, const std::vector<Star>& stars, int Nmax = 6) {
   int star_id = -1;
   int nrange_min = Nmax;
   for(int stid = 0; stid < stars.size(); stid++) {
