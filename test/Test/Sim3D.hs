@@ -77,10 +77,52 @@ arithmeticTests = testGroup "Sim3D.arithmetic"
 comparisonTests :: TestTree
 comparisonTests = testGroup "Sim3D.comparison"
     [
-        testCase "Equals (true)" $ doStep (parseBoard ". 1 .\n1 = .") @?= Right (parseBoard ". . .\n. = 1\n. 1 .")
-    ,   testCase "Equals (false)" $ doStep (parseBoard ". 1 .\n2 = .") @?= Right (parseBoard ". 1 .\n2 = .")
-    ,   testCase "NotEquals (true)" $ doStep (parseBoard ". 2 .\n1 # .") @?= Right (parseBoard ". . .\n. # 1\n. 2 .")
-    ,   testCase "NotEquals (false)" $ doStep (parseBoard ". 2 .\n2 # .") @?= Right (parseBoard ". 2 .\n2 # .")
+        testCase "Equals (true)" $
+            doStep (parseBoard $ T.unlines
+                    [
+                        ". 1 ."
+                    ,   "1 = ."
+                    ])
+            @?= Right (parseBoard $ T.unlines
+                    [
+                        ". . ."
+                    ,   ". = 1"
+                    ,   ". 1 ."
+                    ])
+    ,   testCase "Equals (false)" $
+            doStep (parseBoard $ T.unlines
+                    [
+                        ". 1 ."
+                    ,   "2 = ."
+                    ])
+            @?= Right (parseBoard $ T.unlines
+                    [
+                        ". 1 ."
+                    ,   "2 = ."
+                    ])
+    ,   testCase "NotEquals (true)" $
+            doStep (parseBoard $ T.unlines
+                    [
+                        ". 2 ."
+                    ,   "1 # ."
+                    ])
+            @?= Right (parseBoard $ T.unlines
+                    [
+                        ". . ."
+                    ,   ". # 1"
+                    ,   ". 2 ."
+                    ])
+    ,   testCase "NotEquals (false)" $
+            doStep (parseBoard $ T.unlines
+                    [
+                        ". 2 ."
+                    ,   "2 # ."
+                    ])
+            @?= Right (parseBoard $ T.unlines
+                    [
+                        ". 2 ."
+                    ,   "2 # ."
+                    ])
     ]
 
 crashTests :: TestTree
