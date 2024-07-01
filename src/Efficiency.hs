@@ -2746,4 +2746,5 @@ stripYCombinator expr = expr
 getNestedExpression :: AST -> AST
 getNestedExpression (Apply expr _) = getNestedExpression expr
 getNestedExpression (Lambda _ expr) = getNestedExpression expr
+getNestedExpression (If cond _then _else) = cond
 getNestedExpression expr = expr
