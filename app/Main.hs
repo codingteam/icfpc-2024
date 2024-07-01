@@ -106,14 +106,11 @@ main = do
     ["http-spaceship-bitcoding", problem_no, solution_file] -> do
         solution <- readFile solution_file
         let packed = T.pack solution
-            bitcodeCompressed = toSelfExtractingBitcode "123456789" packed
             rleCompressed = rleEncode packed
             instruction = "solve spaceship" <> T.pack problem_no <> " "
-            bitcodeProgram = Concat (Str instruction) bitcodeCompressed
             rleProgram = Concat (Str instruction) rleCompressed
             verbatimProgram = instruction <> packed
             galaxy = minimumBy (comparing T.length) [
-                        astToGalaxy bitcodeProgram,
                         astToGalaxy rleProgram,
                         textToGalaxy verbatimProgram]
         performRequest galaxy
