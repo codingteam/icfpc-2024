@@ -53,21 +53,20 @@ repeatLine =
     iteration = Var 0
 
 times :: AST
-times = makeRecursion go
+times = 10 --> makeRecursion go
     where
     self = Var 0
-    action = Var 1
+    action = Var 10
     iterations_left = Var 2
 
     go =
         0 --> -- self
-        1 --> -- action
         2 --> -- iterations_left
         (If
             (Equals iterations_left 1)
             (action)
             (Concat
-              ((self $$ action) $$ (iterations_left-1))
+              (self $$ (iterations_left-1))
               (action)))
 
 explode :: Char -> AST
