@@ -1,5 +1,7 @@
 module Lambdaman8 where
 
+import qualified Data.Text as T
+
 import AST
 import StringBitCoding (makeRecursion)
 
@@ -58,13 +60,36 @@ times = makeRecursion go
         2 --> -- iterations_left
         (If
             (Equals iterations_left 1)
-            (repeatLine $$ iterations_left)
+            (action $$ iterations_left)
             (Concat
               ((self $$ action) $$ (iterations_left-1))
-              (repeatLine $$ iterations_left)))
+              (action $$ iterations_left)))
+
+goDown :: AST
+goDown = Str $ T.pack $ take 99 $ repeat 'D'
+
+goLeft :: AST
+goLeft = Str $ T.pack $ take 99 $ repeat 'L'
+
+goUp :: AST
+goUp = Str $ T.pack $ take 99 $ repeat 'U'
+
+goRight :: AST
+goRight = Str $ T.pack $ take 99 $ repeat 'R'
+
+loop :: AST
+loop =
+    0 -->
+    Concat
+        goDown
+        (Concat
+            goLeft
+            (Concat
+                goUp
+                goRight))
 
 lambdaman8Solution :: AST
 lambdaman8Solution =
     (Concat
         "solve lambdaman8 "
-        ((times $$ repeatLine) $$ 49))
+        ((times $$ loop) $$ 25))
