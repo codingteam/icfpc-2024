@@ -109,8 +109,8 @@ comparisonTests = testGroup "Sim3D.comparison"
             @?= Right (parseBoard $ T.unlines
                     [
                         ". . ."
-                    ,   ". # 1"
-                    ,   ". 2 ."
+                    ,   ". # 2"
+                    ,   ". 1 ."
                     ])
     ,   testCase "NotEquals (false)" $
             doStep (parseBoard $ T.unlines

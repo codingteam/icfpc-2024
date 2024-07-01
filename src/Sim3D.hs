@@ -358,8 +358,8 @@ performComparison cmp (x, y) = do
     v1 <- readAt (x - 1, y    )
     v2 <- readAt (x    , y - 1)
     when (v1 `cmp` v2) $ do
-        moveValue (x-1, y) (x+1, y)
-        moveValue (x, y-1) (x, y+1)
+        moveValue (x-1, y) (x, y+1)
+        moveValue (x, y-1) (x+1, y)
 
 warpTime :: Sim3dM ()
 warpTime = do
