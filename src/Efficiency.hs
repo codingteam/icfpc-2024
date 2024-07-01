@@ -4,7 +4,9 @@ module Efficiency (
     efficiency12,
     toCondString,
     toSATString,
-    readSATInput
+    readSATInput,
+    getNestedExpression,
+    stripYCombinator
 ) where
 
 import Data.Function (fix)
@@ -2708,3 +2710,40 @@ readSATInput x [0] = x
 readSATInput x (bit:rest) | bit > 0 = readSATInput (x + (1 `Bits.shiftL` (bit - 1))) rest
 readSATInput x (bit:rest) | bit < 0 = readSATInput (x) rest -- ignore
 readSATInput _ other = error $ "WTF? " ++ show other
+
+stripYCombinator :: AST -> AST
+stripYCombinator
+    (Apply
+        (Apply
+            (Lambda 1
+                (Apply
+                    (Lambda 2
+                        (Apply
+                            (Var 1 )
+                            (Apply
+                                (Var 2)
+                                (Var 2)
+                            )
+                        )
+                    )
+                    (Lambda 2
+                        (Apply
+                            (Var 1)
+                            (Apply
+                                (Var 2)
+                                (Var 2)
+                            )
+                        )
+                    )
+                )
+            )
+            body
+        )
+        _argument
+    ) = body
+stripYCombinator expr = expr
+
+getNestedExpression :: AST -> AST
+getNestedExpression (Apply expr _) = getNestedExpression expr
+getNestedExpression (Lambda _ expr) = getNestedExpression expr
+getNestedExpression expr = expr
