@@ -5,6 +5,11 @@ import qualified Data.Text as T
 import AST
 import StringBitCoding (makeRecursion)
 
+double :: AST
+double = 0 --> Concat input input
+    where
+    input = Var 0
+
 repeatStr :: AST
 repeatStr = makeRecursion repeater
     where
@@ -60,26 +65,28 @@ times = makeRecursion go
         2 --> -- iterations_left
         (If
             (Equals iterations_left 1)
-            (action $$ iterations_left)
+            (action)
             (Concat
               ((self $$ action) $$ (iterations_left-1))
-              (action $$ iterations_left)))
+              (action)))
+
+explode :: Char -> AST
+explode c = double $$ Str $ T.pack $ take 50 $ repeat c
 
 goDown :: AST
-goDown = Str $ T.pack $ take 99 $ repeat 'D'
+goDown = explode 'D'
 
 goLeft :: AST
-goLeft = Str $ T.pack $ take 99 $ repeat 'L'
+goLeft = explode 'L'
 
 goUp :: AST
-goUp = Str $ T.pack $ take 99 $ repeat 'U'
+goUp = explode 'U'
 
 goRight :: AST
-goRight = Str $ T.pack $ take 99 $ repeat 'R'
+goRight = explode 'R'
 
 loop :: AST
 loop =
-    0 -->
     Concat
         goDown
         (Concat
