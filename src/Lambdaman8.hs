@@ -39,8 +39,17 @@ loop =
                 goUp
                 goRight))
 
+applyThrice :: AST
+applyThrice =
+    0 --> -- action
+    1 --> -- input
+    action $$ action $$ action $$ input
+    where
+    action = Var 0
+    input = Var 1
+
 spin :: AST
-spin = triple $$ triple $$ triple $$ loop
+spin = (applyThrice $$ triple) $$ loop
 
 lambdaman8Solution :: AST
 lambdaman8Solution =
