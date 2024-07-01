@@ -6,7 +6,8 @@ module Efficiency (
     toSATString,
     readSATInput,
     getNestedExpression,
-    stripYCombinator
+    stripYCombinator,
+    exprToZ3
 ) where
 
 import Data.Function (fix)
@@ -14,6 +15,7 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import AST
 import qualified Data.Bits as Bits
+import qualified Data.Text as T
 
 efficiency7Condition = undefined -- Removed to preserve file maintainability
 
@@ -2748,3 +2750,22 @@ getNestedExpression (Apply expr _) = getNestedExpression expr
 getNestedExpression (Lambda _ expr) = getNestedExpression expr
 getNestedExpression (If cond _then _else) = cond
 getNestedExpression expr = expr
+
+tshow :: Show a => a -> T.Text
+tshow = T.pack . show
+
+exprToZ3 :: AST -> T.Text
+exprToZ3 (Number n) = tshow n
+exprToZ3 (Not x) = "(not " <> exprToZ3 x <> ")"
+exprToZ3 (Add x y) = "(+ " <> exprToZ3 x <> " " <> exprToZ3 y <> ")"
+exprToZ3 (Sub x y) = "(- " <> exprToZ3 x <> " " <> exprToZ3 y <> ")"
+exprToZ3 (Mult x y) = "(* " <> exprToZ3 x <> " " <> exprToZ3 y <> ")"
+exprToZ3 (Div x y) = "(/ " <> exprToZ3 x <> " " <> exprToZ3 y <> ")"
+exprToZ3 (Mod x y) = "(% " <> exprToZ3 x <> " " <> exprToZ3 y <> ")"
+exprToZ3 (Lt x y) = "(< " <> exprToZ3 x <> " " <> exprToZ3 y <> ")"
+exprToZ3 (Gt x y) = "(> " <> exprToZ3 x <> " " <> exprToZ3 y <> ")"
+exprToZ3 (Equals x y) = "(= " <> exprToZ3 x <> " " <> exprToZ3 y <> ")"
+exprToZ3 (Or x y) = "(or " <> exprToZ3 x <> " " <> exprToZ3 y <> ")"
+exprToZ3 (And x y) = "(and " <> exprToZ3 x <> " " <> exprToZ3 y <> ")"
+exprToZ3 (Var n) = "n" <> tshow n
+exprToZ3 ast = error $ "Can't convert this to Z3: " ++ show ast
