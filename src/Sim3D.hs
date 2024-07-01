@@ -446,8 +446,9 @@ showCell InputB = "B"
 
 showBoard :: Sim3dM DT.Text
 showBoard = do
-    columns <- fmap boardToColumnMajorList (gets s3dsCurBoard)
-    let formattedColumns = (map.map) showCell columns
+    board <- gets s3dsCurBoard
+    let columns = boardToColumnMajorList (minCoords board, maxCoords board) board
+        formattedColumns = (map.map) showCell columns
         columnWidths = map (\column -> maximum (0 : map DT.length column)) formattedColumns
         paddedColumns =
             zipWith
@@ -458,10 +459,21 @@ showBoard = do
         table = DT.unlines $ map DT.unwords rows
     pure table
 
+getGlobalMinMaxCoords :: Board -> Board -> ((Integer, Integer), (Integer, Integer))
+getGlobalMinMaxCoords b1 b2 =
+    let ((minX1, minY1), (maxX1, maxY1)) = (minCoords b1, maxCoords b1)
+        ((minX2, minY2), (maxX2, maxY2)) = (minCoords b2, maxCoords b2)
+        minX = min minX1 minX2
+        minY = min minY1 minY2
+        maxX = max maxX1 maxX2
+        maxY = max maxY1 maxY2 in
+    ((minX, minY), (maxX, maxY))
+
 showBoardDiff :: Board -> Board -> DT.Text
 showBoardDiff prev cur =
-    let prevColumns = boardToColumnMajorList prev
-        curColumns = boardToColumnMajorList cur
+    let globalMinMaxCoords = getGlobalMinMaxCoords prev cur
+        prevColumns = boardToColumnMajorList globalMinMaxCoords prev
+        curColumns = boardToColumnMajorList globalMinMaxCoords cur
         changes = (zipWith . zipWith) (/=) prevColumns curColumns
 
         formattedColumns = (map.map) showCell curColumns
@@ -486,12 +498,11 @@ showBoardDiff prev cur =
         table = DT.unlines $ map DT.unwords rows
     in table
 
-boardToColumnMajorList :: Board -> [[Cell]]
-boardToColumnMajorList board =
-    let ((minX, minY), (maxX, maxY)) = (minCoords board, maxCoords board)
-    in map
-        (\x ->
-            map
-                (\y -> M.findWithDefault Empty (x, y) $ cells board)
-                [minY..maxY])
-        [minX..maxX]
+boardToColumnMajorList :: ((Integer, Integer), (Integer, Integer)) -> Board -> [[Cell]]
+boardToColumnMajorList ((minX, minY), (maxX, maxY)) board =
+    map
+     (\x ->
+         map
+             (\y -> M.findWithDefault Empty (x, y) $ cells board)
+             [minY..maxY])
+     [minX..maxX]
