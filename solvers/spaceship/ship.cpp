@@ -15,20 +15,28 @@ typedef struct Ship {
 } Ship;
 
 std::vector<Star> load_stars(const std::string &filename) {
+  std::vector<Star> stars{};
+
   std::ifstream infile_path(filename);
 
   if (!infile_path) {
     std::cerr << "Could not open the file: '" << filename << "'" << std::endl;
-    exit(1);
+    return stars;
   }
-
-  std::vector<Star> stars;
   std::string line;
 
   while (std::getline(infile_path, line)) {
     Star star;
     std::stringstream ss(line);
     ss >> star.x >> star.y;
+    if (star.x == 0 && star.y == 0) {
+      continue;
+    }
+    for (const auto& starin: stars) {
+      if (star.x == starin.x && star.y == starin.y) {
+        continue;
+      }
+    }
     stars.push_back(star);
   }
 
@@ -38,15 +46,12 @@ std::vector<Star> load_stars(const std::string &filename) {
 }
 
 std::tuple<int, int, int> steps_to_point(const Ship& ship, const Star& star) {
-  const int Nmax = 1000;
-  std::vector<int> triangle_numbers;
-  for (int i = 0; i < Nmax; i++) {
-    triangle_numbers.push_back(i*(i+1)/2);
-  }
+  const int Nmax = 10000;
   for (int nsteps = 0; nsteps < Nmax; nsteps++) {
+    const int triangle_number = nsteps * (nsteps + 1) / 2;
     const int dx = ship.x + ship.vx * nsteps - star.x;
     const int dy = ship.y + ship.vy * nsteps - star.y;
-    if (std::abs(dx) <= triangle_numbers[nsteps] && std::abs(dy) <= triangle_numbers[nsteps])
+    if (std::abs(dx) <= triangle_number && std::abs(dy) <= triangle_number)
       return std::make_tuple(nsteps, dx, dy);
   }
   std::cerr << "Distance is too large: " << Nmax << std::endl;
@@ -55,7 +60,6 @@ std::tuple<int, int, int> steps_to_point(const Ship& ship, const Star& star) {
 
 const std::string accelerate(int dc, const int& nsteps) {
   dc = std::abs(dc);
-  const int Nmax = 10;
   std::string acc("");
   for(int step = nsteps; step > 0; step--) {
     if (dc >= step) {
@@ -169,6 +173,18 @@ int main(int argc, char *argv[]) {
     std::cerr << "Not enough arguments!" << std::endl;
     exit(1);
   }
-  auto stars = load_stars(argv[1]);
-  std::cout << build_ordered_path(stars) << std::endl;
+  std::string res("");
+  if (argc >= 2) {
+    std::string filename(argv[1]);
+    std::cout << filename << std::endl;
+    auto stars = load_stars(filename);
+    res = build_ordered_path(stars);
+    // try load sorted version
+    auto stars_sort = load_stars(filename + "_sort");
+    std::string res_sort = build_ordered_path(stars_sort);
+    if (res_sort.size() > 0 && res.size() > res_sort.size()) {
+      res_sort = res;
+    }
+  }
+  std::cout << res << std::endl;
 }
