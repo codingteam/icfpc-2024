@@ -10,6 +10,12 @@ Participants
 - [Minoru](https://github.com/Minoru),
 - [Portnov](https://github.com/portnov).
 
+Lightning Round
+---------------
+What was done during the lightning round: see the tree on commit https://github.com/codingteam/icfpc-2024/tree/1f4f0bbc30aa8d838b0d247ca060c21a068edece.
+
+Basically, Spaceship solver's parts in Fortran, and simple Lambdaman solver & solutions.
+
 Prerequisites
 -------------
 Install [Stack][stack] v2.15.7.
