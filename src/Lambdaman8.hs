@@ -10,48 +10,6 @@ double = 0 --> Concat input input
     where
     input = Var 0
 
-repeatStr :: AST
-repeatStr = makeRecursion repeater
-    where
-        self = Var 0
-        char = Var 1
-        count = Var 2
-
-        repeater =
-            0 --> -- self
-            1 --> -- char
-            2 --> -- count
-            (If
-                (count =~ 1)
-                (char)
-                (Concat char ((self $$ char) $$ (count - 1))))
-
-repeatDL :: AST
-repeatDL =
-    0 --> -- count
-    (Concat ((repeatStr $$ "DD") $$ count) ((repeatStr $$ "LL") $$ count))
-    where
-    count = Var 0
-
-repeatUR :: AST
-repeatUR =
-    0 --> -- count
-    (Concat ((repeatStr $$ "UU") $$ count) ((repeatStr $$ "RR") $$ count))
-    where
-    count = Var 0
-
-repeatLine :: AST
-repeatLine =
-    0 --> -- iteration
-    (If
-        (Equals
-            1
-            (Mod iteration 2))
-        (repeatDL $$ iteration)
-        (repeatUR $$ iteration))
-    where
-    iteration = Var 0
-
 times :: AST
 times = 10 --> makeRecursion go
     where
@@ -94,8 +52,11 @@ loop =
                 goUp
                 goRight))
 
+spin :: AST
+spin = double $$ double $$ double $$ double $$ double $$ loop
+
 lambdaman8Solution :: AST
 lambdaman8Solution =
-    (Concat
+    Concat
         "solve lambdaman8 "
-        ((times $$ loop) $$ 25))
+        spin
