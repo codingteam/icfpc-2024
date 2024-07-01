@@ -357,9 +357,12 @@ performComparison :: (Cell -> Cell -> Bool) -> Position -> Sim3dM ()
 performComparison cmp (x, y) = do
     v1 <- readAt (x - 1, y    )
     v2 <- readAt (x    , y - 1)
-    when (v1 `cmp` v2) $ do
-        moveValue (x-1, y) (x, y+1)
-        moveValue (x, y-1) (x+1, y)
+    case (v1, v2) of
+      (Value a, Value b) ->
+        when (v1 `cmp` v2) $ do
+            moveValue (x-1, y) (x, y+1)
+            moveValue (x, y-1) (x+1, y)
+      _ -> pure ()
 
 warpTime :: Sim3dM ()
 warpTime = do
