@@ -28,6 +28,7 @@ library
       Efficiency
       HttpRequests
       Lambdaman
+      Lambdaman6
       Lambdaman8
       Lib
       Parser
