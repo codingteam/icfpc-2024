@@ -45,8 +45,7 @@ std::vector<Star> load_stars(const std::string &filename) {
   return stars;
 }
 
-std::tuple<int, int, int> steps_to_point(const Ship& ship, const Star& star) {
-  const int Nmax = 10000;
+std::tuple<int, int, int> steps_to_point(const Ship& ship, const Star& star, const int Nmax = 1000) {
   for (int nsteps = 0; nsteps < Nmax; nsteps++) {
     const int triangle_number = nsteps * (nsteps + 1) / 2;
     const int dx = ship.x + ship.vx * nsteps - star.x;
@@ -54,8 +53,7 @@ std::tuple<int, int, int> steps_to_point(const Ship& ship, const Star& star) {
     if (std::abs(dx) <= triangle_number && std::abs(dy) <= triangle_number)
       return std::make_tuple(nsteps, dx, dy);
   }
-  std::cerr << "Distance is too large: " << Nmax << std::endl;
-  exit(1);
+  return std::make_tuple(-1, 0, 0);
 }
 
 const std::string accelerate(int dc, const int& nsteps) {
@@ -153,6 +151,7 @@ std::string build_ordered_path(const std::vector<Star> &stars) {
     int nsteps, dx, dy;
     const auto res = steps_to_point(ship, star);
     std::tie(nsteps, dx, dy) = res;
+    if (nsteps < 0) return "";
     //
     const auto& acc_x_s = accelerate(dx, nsteps);
     const auto& acc_y_s = accelerate(dy, nsteps);
@@ -182,8 +181,8 @@ int main(int argc, char *argv[]) {
     // try load sorted version
     auto stars_sort = load_stars(filename + "_sort");
     std::string res_sort = build_ordered_path(stars_sort);
-    if (res_sort.size() > 0 && res.size() > res_sort.size()) {
-      res_sort = res;
+    if (res.size == 0 || (res_sort.size() > 0 && res.size() > res_sort.size())) {
+      res = res_sort;
     }
   }
   std::cout << res << std::endl;
