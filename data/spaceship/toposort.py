@@ -83,13 +83,12 @@ def sort_clusters(clusters):
 
 def save_coords(filename, coords):
   coords = [ str(c[0]) + " " + str(c[1]) for c in coords ]
-  open(filename + "_sort", "w").write("\n".join(coords))
+  open(filename, "w").write("\n".join(coords))
 
-def main(task_id):
-  filename = f"spaceship{task_id}.txt"
-  coords = load_coords(filename)
+def main(filein, fileout):
+  coords = load_coords(filein)
   clusters = coords_to_clusters(coords)
   coords = sort_clusters(clusters)
-  save_coords(filename, coords)
+  save_coords(fileout, coords)
 
-main(sys.argv[1])
+main(sys.argv[1], sys.argv[2])

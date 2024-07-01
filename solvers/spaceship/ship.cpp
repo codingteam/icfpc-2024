@@ -15,12 +15,12 @@ typedef struct Ship {
   int vx = 0, vy = 0;
 } Ship;
 
-std::vector<Star> load_stars(const std::string &filename) {
+std::vector<Star> load_stars(const std::string &filename, bool silent = false) {
   std::vector<Star> stars{};
 
   std::ifstream infile_path(filename);
 
-  if (!infile_path) {
+  if (!infile_path && !silent) {
     std::cerr << "Could not open the file: '" << filename << "'" << std::endl;
     return stars;
   }
@@ -253,10 +253,18 @@ int main(int argc, char *argv[]) {
       res = res_sort;
     }
     // has an effect only for spaceship15
-    std::string res_follow = follow_by_speed(stars);
-    if (res.size() == 0 || (res_follow.size() > 0 && res.size() > res_follow.size())) {
-      std::cerr << filename << ": Choosing follow_by_speed, len = " << res_follow.size() << std::endl;
-      res = res_follow;
+    //std::string res_follow = follow_by_speed(stars);
+    //if (res.size() == 0 || (res_follow.size() > 0 && res.size() > res_follow.size())) {
+    //  std::cerr << filename << ": Choosing follow_by_speed, len = " << res_follow.size() << std::endl;
+    //  res = res_follow;
+    //}
+    for (int i = 1; i < 200; i++) {
+      auto stars_kmeans = load_stars(filename + "_kmeans-" + std::to_string(i), true);
+      std::string res_kmeans = build_ordered_path(stars_kmeans);
+      if (res.size() == 0 || (res_kmeans.size() > 0 && res.size() > res_kmeans.size())) {
+        std::cerr << filename << ": Choosing kmeans data: " << " " << i << ", len = " << res_kmeans.size() << std::endl;
+        res = res_kmeans;
+      }
     }
   }
   std::cout << res << std::endl;

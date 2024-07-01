@@ -41,7 +41,7 @@ def mergepath(steps0):
   return res
 
 def main():
-  files = glob.glob("*.sol0")
+  files = glob.glob("*_sort10.sol0")
 
   for f in files:
     steps0 = open(f).read()
@@ -49,7 +49,8 @@ def main():
 #  print("Original str: ", steps0.replace("0",""))
     print("Original len: ", len(steps0.replace("0","")))
     res = mergepath(steps0)
-    open(f[:-1], "w").write(res)
+    if (len(res) != 0):
+        open(f[:-1], "w").write(res)
     print("Combined len: ", len(res))
 
 if __name__ == "__main__":
