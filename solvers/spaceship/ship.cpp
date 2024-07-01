@@ -181,7 +181,7 @@ int find_nearest(const Ship& ship, const std::vector<Star>& stars) {
   return star_id;
 }
 
-int find_in_range(const Ship& ship, const std::vector<Star>& stars, int Nmax = 6) {
+int find_in_range(const Ship& ship, const std::vector<Star>& stars, int Nmax = 15) {
   int star_id = -1;
   int nrange_min = Nmax;
   for(int stid = 0; stid < stars.size(); stid++) {
@@ -244,7 +244,7 @@ int main(int argc, char *argv[]) {
     std::string filename(argv[1]);
     auto stars = load_stars(filename);
     res = build_ordered_path(stars);
-    std::cerr << filename << ": Original data, len = " << res_sort.size() << std::endl;
+    std::cerr << filename << ": Original data, len = " << res.size() << std::endl;
     // try load sorted version
     auto stars_sort = load_stars(filename + "_sort");
     std::string res_sort = build_ordered_path(stars_sort);
