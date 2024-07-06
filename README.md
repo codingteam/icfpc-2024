@@ -7,7 +7,7 @@ Participants
 - [ForNeVeR](https://github.com/ForNeVeR) — [report (English)](https://fornever.me/en/posts/2024-07-01.icfpc-2024.html), [reserve link to report](https://github.com/ForNeVeR/fornever.me/blob/HEAD/ForneverMind/posts/en/2024-07-01.icfpc-2024.md),
 - [Foxtran](https://github.com/foxtran),
 - [Gsomix](https://github.com/gsomix),
-- [Minoru](https://github.com/Minoru),
+- [Minoru](https://github.com/Minoru) — [report (Russian)](https://blog.tty8.org/posts/2024-07-06-icfpc-2024.html),
 - [Portnov](https://github.com/portnov).
 
 Lightning Round
